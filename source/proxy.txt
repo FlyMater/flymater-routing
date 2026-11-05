@@ -1,0 +1,6 @@
+# Домены через VPN — начальный пример, дополните своими списками
+telegram.org
+t.me
+telegram.me
+openai.com
+chatgpt.com

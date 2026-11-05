@@ -1,0 +1,15 @@
+# Прямое соединение
+cursor.com
+cursor.sh
+cursor-cdn.com
+github.com
+beget.com
+apple.com
+icloud.com
+icloud-content.com
+apple-cloudkit.com
+apple-livephotoskit.com
+apple-dns.net
+cdn-apple.com
+mzstatic.com
+itunes.com

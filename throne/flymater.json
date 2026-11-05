@@ -1,0 +1,77 @@
+{
+  "kind": "throne-route-profile",
+  "v": 1,
+  "name": "FlyMater Routing",
+  "default_outbound": "direct",
+  "rules": [
+    {
+      "name": "LOCAL: private IPv4",
+      "type": "custom",
+      "action": "route",
+      "outbound": "direct",
+      "ip_cidr": [
+        "10.0.0.0/8",
+        "172.16.0.0/12",
+        "192.168.0.0/16",
+        "127.0.0.0/8",
+        "169.254.0.0/16"
+      ]
+    },
+    {
+      "name": "LOCAL: private IPv6",
+      "type": "custom",
+      "action": "route",
+      "outbound": "direct",
+      "ip_cidr": [
+        "fc00::/7",
+        "fe80::/10"
+      ]
+    },
+    {
+      "name": "FlyMater LOCAL",
+      "type": "custom",
+      "action": "route",
+      "outbound": "direct",
+      "domain_suffix": [
+        "localhost",
+        "lan",
+        "local"
+      ]
+    },
+    {
+      "name": "FlyMater PROXY",
+      "type": "custom",
+      "action": "route",
+      "outbound": "proxy",
+      "domain_suffix": [
+        "telegram.org",
+        "t.me",
+        "telegram.me",
+        "openai.com",
+        "chatgpt.com"
+      ]
+    },
+    {
+      "name": "FlyMater DIRECT",
+      "type": "custom",
+      "action": "route",
+      "outbound": "direct",
+      "domain_suffix": [
+        "cursor.com",
+        "cursor.sh",
+        "cursor-cdn.com",
+        "github.com",
+        "beget.com",
+        "apple.com",
+        "icloud.com",
+        "icloud-content.com",
+        "apple-cloudkit.com",
+        "apple-livephotoskit.com",
+        "apple-dns.net",
+        "cdn-apple.com",
+        "mzstatic.com",
+        "itunes.com"
+      ]
+    }
+  ]
+}
