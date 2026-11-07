@@ -1,5 +1,5 @@
 {
-  "id": "dcda74f8-9dcd-4e29-8545-f64ca3acc608",
+  "id": "28c2a6c3-8b3e-468c-9bef-9419451ea084",
   "config": {
     "catalogs": [
       {
@@ -123,19 +123,26 @@
         "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
         "policy": "proxy",
         "exclude": []
+      },
+      {
+        "tag": "geosite-cursor",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cursor.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "direct",
+        "exclude": []
       }
     ]
   },
   "manual": {
+    "local": "# Локальные доменные исключения\nlocalhost\nlan\nlocal\n",
     "proxy": "# Домены через VPN — начальный пример, дополните своими списками\ntelegram.org\nt.me\ntelegram.me\nopenai.com\nchatgpt.com\n",
     "direct": "# Прямое соединение\ncursor.com\ncursor.sh\ncursor-cdn.com\nbeget.com\napple.com\nicloud.com\nicloud-content.com\napple-cloudkit.com\napple-livephotoskit.com\napple-dns.net\ncdn-apple.com\nmzstatic.com\nitunes.com\n",
-    "reject": "# Блокируемые домены (пока пусто)\n",
-    "local": "# Локальные доменные исключения\nlocalhost\nlan\nlocal\n"
+    "reject": "# Блокируемые домены (пока пусто)\n"
   },
   "base": {
-    "source/routing.json": "1a23086f1b66473ff9df015f96200ba120aaf7a0",
+    "source/routing.json": "9c06bf744959443c9568308d130346094e1ca1a8",
     "source/proxy.txt": "f8b5aa3e6f82655a23ef99d9cc42730121009b21",
-    "source/direct.txt": "cf9a114adf6c933e5d0462fc083cf6319181f824",
+    "source/direct.txt": "d244dc87421acfa4d2c78cd66d4b55eda6cdd600",
     "source/reject.txt": "222b8238d3daf071a0477bbde8196b3f298a3f83",
     "source/local.txt": "bfe30ff97c3b303dce2e54c8f05a00736e2001da"
   }
