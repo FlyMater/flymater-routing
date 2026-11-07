@@ -1,5 +1,5 @@
 {
-  "id": "dcda74f8-9dcd-4e29-8545-f64ca3acc608",
+  "id": "28c2a6c3-8b3e-468c-9bef-9419451ea084",
   "issues": [],
   "coverage": [
     {
@@ -402,6 +402,24 @@
     },
     {
       "tag": "geosite-whatsapp",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-cursor",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-cursor",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-cursor",
       "client": "throne",
       "status": "полностью",
       "skipped": []
