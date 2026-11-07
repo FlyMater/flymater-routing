@@ -9,7 +9,4 @@ apple-dns.net
 cdn-apple.com
 mzstatic.com
 itunes.com
-plaud.ai
-posthog.com
-ncnodes.com
-notube.net
+
