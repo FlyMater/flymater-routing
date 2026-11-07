@@ -1,7 +1,4 @@
 # Прямое соединение
-cursor.com
-cursor.sh
-cursor-cdn.com
 beget.com
 apple.com
 icloud.com
@@ -12,3 +9,7 @@ apple-dns.net
 cdn-apple.com
 mzstatic.com
 itunes.com
+plaud.ai
+posthog.com
+ncnodes.com
+notube.net
