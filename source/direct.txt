@@ -2,7 +2,6 @@
 cursor.com
 cursor.sh
 cursor-cdn.com
-github.com
 beget.com
 apple.com
 icloud.com
