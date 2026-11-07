@@ -1,0 +1,26 @@
+name: Обновить описания Geosite
+on:
+  schedule:
+    - cron: '27 3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: geosite-${{ github.ref }}
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: SagerNet/sing-geosite
+          ref: rule-set
+          path: upstream
+          persist-credentials: false
+      - uses: ./.github/actions/sing-box
+      - run: python3 scripts/geosite_examples.py upstream docs/geosite-examples.json
+      - name: Сохранить обновлённые описания
+        run: |
+          git add docs/geosite-examples.json
+          bash scripts/publish.sh "Обновить примеры доменов Geosite" docs/geosite-examples.json
