@@ -1,27 +1,427 @@
 {
-  "id": "047c0040-f62f-4564-bfeb-3ac99ddcc662",
+  "id": "6a42fa51-99a5-4da8-a1a0-aa51b7fccc69",
   "issues": [
-    "geosite-kinopub · ndms: ndms: условие domain_regex",
-    "geosite-kinopub · shadowrocket: shadowrocket: условие domain_regex",
-    "geosite-kinopub · throne: throne: условие domain_regex",
-    "geosite-openai · ndms: ndms: условие domain",
-    "geosite-openai · shadowrocket: shadowrocket: условие domain_regex",
-    "geosite-openai · throne: throne: условие domain_regex",
-    "geosite-anthropic · ndms: ndms: условие domain",
-    "geosite-perplexity · ndms: ndms: условие domain",
-    "geosite-google-gemini · ndms: ndms: условие domain",
     "geosite-github · singbox: github.com назначен в direct и proxy",
-    "geosite-github · ndms: ndms: условие domain",
+    "geosite-github · ndms: github.com назначен в direct и proxy",
     "geosite-github · shadowrocket: github.com назначен в direct и proxy",
     "geosite-github · throne: github.com назначен в direct и proxy",
-    "geosite-discord · ndms: ndms: условие domain",
-    "geosite-tiktok · ndms: ndms: условие domain",
-    "geosite-youtube · ndms: ndms: условие domain",
-    "geosite-youtube · shadowrocket: domain_suffix: .youtube",
-    "geosite-youtube · throne: domain_suffix: .youtube",
-    "geosite-twitch · ndms: ndms: условие domain",
     "singbox: cafe.github.com (proxy) пересекается с github.com (direct)",
+    "ndms: cafe.github.com (proxy) пересекается с github.com (direct)",
     "shadowrocket: cafe.github.com (proxy) пересекается с github.com (direct)",
     "throne: cafe.github.com (proxy) пересекается с github.com (direct)"
+  ],
+  "coverage": [
+    {
+      "tag": "geosite-telegram",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-telegram",
+      "client": "ndms",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-telegram",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-telegram",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-kinopub",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-kinopub",
+      "client": "ndms",
+      "status": "частично",
+      "skipped": [
+        "domain_regex"
+      ]
+    },
+    {
+      "tag": "geosite-kinopub",
+      "client": "shadowrocket",
+      "status": "частично",
+      "skipped": [
+        "domain_regex"
+      ]
+    },
+    {
+      "tag": "geosite-kinopub",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-openai",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-openai",
+      "client": "ndms",
+      "status": "частично",
+      "skipped": [
+        "domain",
+        "domain_regex"
+      ]
+    },
+    {
+      "tag": "geosite-openai",
+      "client": "shadowrocket",
+      "status": "частично",
+      "skipped": [
+        "domain_regex"
+      ]
+    },
+    {
+      "tag": "geosite-openai",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-anthropic",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-anthropic",
+      "client": "ndms",
+      "status": "частично",
+      "skipped": [
+        "domain"
+      ]
+    },
+    {
+      "tag": "geosite-anthropic",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-anthropic",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-perplexity",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-perplexity",
+      "client": "ndms",
+      "status": "частично",
+      "skipped": [
+        "domain"
+      ]
+    },
+    {
+      "tag": "geosite-perplexity",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-perplexity",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-google-gemini",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-google-gemini",
+      "client": "ndms",
+      "status": "частично",
+      "skipped": [
+        "domain"
+      ]
+    },
+    {
+      "tag": "geosite-google-gemini",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-google-gemini",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-github",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-github",
+      "client": "ndms",
+      "status": "частично",
+      "skipped": [
+        "domain"
+      ]
+    },
+    {
+      "tag": "geosite-github",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-github",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-instagram",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-instagram",
+      "client": "ndms",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-instagram",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-instagram",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-discord",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-discord",
+      "client": "ndms",
+      "status": "частично",
+      "skipped": [
+        "domain"
+      ]
+    },
+    {
+      "tag": "geosite-discord",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-discord",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-pinterest",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-pinterest",
+      "client": "ndms",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-pinterest",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-pinterest",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-xai",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-xai",
+      "client": "ndms",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-xai",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-xai",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-tiktok",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-tiktok",
+      "client": "ndms",
+      "status": "частично",
+      "skipped": [
+        "domain"
+      ]
+    },
+    {
+      "tag": "geosite-tiktok",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-tiktok",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-youtube",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-youtube",
+      "client": "ndms",
+      "status": "частично",
+      "skipped": [
+        "domain",
+        "domain_suffix (.youtube)"
+      ]
+    },
+    {
+      "tag": "geosite-youtube",
+      "client": "shadowrocket",
+      "status": "частично",
+      "skipped": [
+        "domain_suffix (.youtube)"
+      ]
+    },
+    {
+      "tag": "geosite-youtube",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-zoom",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-zoom",
+      "client": "ndms",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-zoom",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-zoom",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-twitch",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-twitch",
+      "client": "ndms",
+      "status": "частично",
+      "skipped": [
+        "domain"
+      ]
+    },
+    {
+      "tag": "geosite-twitch",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-twitch",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-whatsapp",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-whatsapp",
+      "client": "ndms",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-whatsapp",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-whatsapp",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    }
   ]
 }
