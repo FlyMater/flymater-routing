@@ -1,4 +1,5 @@
 import json
+import shutil
 import sys
 import tempfile
 import unittest
@@ -44,11 +45,25 @@ class RoutingTests(unittest.TestCase):
         for path in ["awg/proxy.txt", "shadowrocket/flymater.conf", "throne/flymater.json"]:
             self.assertEqual(out[path], (ROOT / path).read_bytes())
 
+    def test_failed_rebuild_preserves_published_snapshot(self):
+        shutil.copytree(ROOT / "source", self.work / "source")
+        config = self.work / "source/routing.json"
+        with patch.object(gen, "ROOT", self.work), patch.object(sys, "argv", ["generate.py"]):
+            gen.main()
+            published = self.work / "docs/published-routes.json"
+            prior = published.read_bytes()
+            self.assertEqual(json.loads(prior), {"config": json.loads(config.read_text()), "manual": gen.manual(self.work)})
+            config.write_bytes(gen.document(self.cfg))
+            with patch.object(gen, "fetch", side_effect=OSError("нет источника")), self.assertRaises(ValueError):
+                gen.main()
+            self.assertEqual(published.read_bytes(), prior)
+
     def test_add_update_move(self):
         rules = [{"domain_suffix": ["route.example"], "ip_cidr": ["198.51.100.0/24"]}]
         with patch.object(gen, "fetch", return_value=self.source(rules)) as fetch:
             out, issues = self.build()
             self.assertFalse(issues)
+            self.assertEqual(json.loads(out["docs/published-routes.json"])["config"], self.cfg)
             fetch.assert_called_once()
             self.assertIn(b"198.51.100.0/24", out["awg/proxy.txt"])
             self.assertIn(b"DOMAIN-SUFFIX,route.example,PROXY", out["shadowrocket/flymater.conf"])

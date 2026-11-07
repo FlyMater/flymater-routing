@@ -244,6 +244,7 @@ def assemble(root, cfg, work, issues, coverage=None):
                 throne.append({"name": f"FlyMater {name.upper()}", "type": "custom", "action": "route", "outbound": "block" if policy == "reject" else policy, **fields})
     outputs["shadowrocket/flymater.conf"] = ("\n".join(sh + ["FINAL,DIRECT"]) + "\n").encode()
     outputs["throne/flymater.json"] = document({"kind": "throne-route-profile", "v": 1, "name": "FlyMater Routing", "default_outbound": "direct", "rules": throne})
+    outputs["docs/published-routes.json"] = document({"config": cfg, "manual": lists})
     return outputs
 
 

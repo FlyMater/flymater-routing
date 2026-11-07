@@ -1,0 +1,46 @@
+{
+  "config": {
+    "catalogs": [
+      {
+        "name": "SagerNet Geosite",
+        "url": "https://github.com/SagerNet/sing-geosite/tree/rule-set"
+      },
+      {
+        "name": "SagerNet GeoIP",
+        "url": "https://github.com/SagerNet/sing-geoip/tree/rule-set"
+      }
+    ],
+    "sets": []
+  },
+  "manual": {
+    "local": [
+      "localhost",
+      "lan",
+      "local"
+    ],
+    "proxy": [
+      "telegram.org",
+      "t.me",
+      "telegram.me",
+      "openai.com",
+      "chatgpt.com"
+    ],
+    "direct": [
+      "cursor.com",
+      "cursor.sh",
+      "cursor-cdn.com",
+      "github.com",
+      "beget.com",
+      "apple.com",
+      "icloud.com",
+      "icloud-content.com",
+      "apple-cloudkit.com",
+      "apple-livephotoskit.com",
+      "apple-dns.net",
+      "cdn-apple.com",
+      "mzstatic.com",
+      "itunes.com"
+    ],
+    "reject": []
+  }
+}

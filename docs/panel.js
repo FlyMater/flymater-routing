@@ -9,7 +9,37 @@ const branch = "main";
 const configPath = "source/routing.json";
 const clients = {singbox:"AWG sing-box", ndms:"AWG NDMS", shadowrocket:"Shadowrocket", throne:"Throne"};
 let expectedCommit;
-let config, revision, entries = [], checked, generation = 0, catalogRequest = 0;
+const views = {};
+let active, config, revision, savedConfig, snapshot, latestId;
+let entries = [], catalogRequest = 0;
+function view(data, id) {
+  return {config:structuredClone(data), id, verified:false, report:""};
+}
+function controls() {
+  $("check").disabled = !onPages;
+  $("publish").disabled = !onPages || !revision || !active.verified || active.id !== latestId;
+  $("report").textContent = active.report;
+  if (!onPages) {
+    const pages = node("a", "Открыть панель на GitHub Pages");
+    pages.href = `https://${owner.toLowerCase()}.github.io/${repository}/`;
+    $("report").append(" Локальный просмотр. ", pages);
+  }
+}
+function options() {
+  const select = $("routeView");
+  select.replaceChildren();
+  if (views.published) select.add(new Option("Опубликованный набор","published"));
+  if (views.draft) select.add(new Option("Последний черновик","draft"));
+  select.hidden = !views.draft;
+  select.value = active === views.published ? "published" : "draft";
+}
+function show(key) {
+  active = views[key];
+  config = active.config;
+  options(); controls(); catalogOptions(); selected();
+  refresh();
+}
+$("routeView").onchange = event => show(event.target.value);
 function node(tag, text) {
   const el = document.createElement(tag);
   if (text !== undefined) el.textContent = text;
@@ -45,10 +75,10 @@ async function write(path, value, sha, message) {
     body:JSON.stringify({branch, message, sha, content})});
 }
 function change() {
-  generation++;
-  checked = undefined;
-  $("publish").disabled = true;
-  if (onPages) $("report").textContent = "Есть изменения. Проверьте черновик перед публикацией.";
+  active.id = undefined;
+  active.verified = false;
+  active.report = "Есть изменения. Проверьте черновик перед публикацией.";
+  controls();
 }
 function titleFor(tag, catalog, customName) {
   const {name, description} = describe(tag, catalog);
@@ -86,7 +116,7 @@ function matches() {
 }
 function selected() {
   const list = $("selected"); list.replaceChildren();
-  if (!config.sets.length) list.append(node("p","Пока используются только ручные списки."));
+  if (!config.sets.length) list.append(node("p","Наборы каталогов не выбраны."));
   for (const item of config.sets) {
     const row = node("article"), policy = node("select"), remove = node("button","Удалить");
     policy.setAttribute("aria-label",`Маршрут для ${item.tag}`);
@@ -103,7 +133,7 @@ function selected() {
       else delete item.name;
       change(); selected(); matches();
     };
-    row.append(titleFor(item.tag, item.catalog, item.name || defaultName), policy, rename, remove, node("small",item.url));
+    row.append(titleFor(item.tag, item.catalog, item.name || entries.find(row => row.url === item.url)?.name || defaultName), policy, rename, remove, node("small",item.url));
     const targets = node("div"); targets.className = "clients";
     for (const [key,title] of Object.entries(clients)) {
       const label = node("label"), input = node("input");
@@ -114,6 +144,16 @@ function selected() {
     }
     row.append(targets); list.append(row);
   }
+  if (!snapshot) return;
+  const labels = {proxy:"PROXY", direct:"DIRECT", reject:"REJECT", local:"Локальные исключения → DIRECT"};
+  const groups = Object.entries(snapshot.manual).filter(([, domains]) => domains.length);
+  if (groups.length) list.append(node("h3","Ручные правила"));
+  if (groups.length && active === views.draft) list.append(node("p","Из опубликованной сборки"));
+  for (const [policy, domains] of groups) {
+    const group = node("details");
+    group.append(node("summary", labels[policy] + " · " + domains.length), node("p", domains.join(", ")));
+    list.append(group);
+  }
 }
 function catalogOptions(active) {
   $("catalog").replaceChildren(...config.catalogs.map(c => new Option(c.name,c.url)));
@@ -122,6 +162,17 @@ function catalogOptions(active) {
 async function refresh() {
   const id = ++catalogRequest, url = $("catalog").value;
   entries = []; $("matches").replaceChildren(); $("catalogState").textContent = "Загрузка каталога…";
+  if (!url) {
+    $("catalogState").textContent = "Каталоги не добавлены.";
+    return;
+  }
+  try {
+    await loadCatalog(id, url);
+  } catch (error) {
+    if (id === catalogRequest) $("catalogState").textContent = error.message;
+  }
+}
+async function loadCatalog(id, url) {
   const u = new URL(safeUrl(url));
   let rows;
   if (u.hostname === "github.com") {
@@ -157,17 +208,9 @@ async function refresh() {
   }
   if (id !== catalogRequest) return;
   entries = rows;
-  const byTag = new Map(rows.map(row => [row.tag, row]));
-  for (const item of config.sets) {
-    const row = byTag.get(item.tag);
-    if (item.catalog === url && row?.url === item.url && item.catalogName !== row.name) {
-      item.catalogName = row.name;
-      change();
-    }
-  }
   matches(); selected();
   const missing = config.sets.filter(s => s.catalog === url && !rows.some(r => r.tag===s.tag && r.url===s.url));
-  if (missing.length) { change(); throw Error("Наборы исчезли или сменили URL: "+missing.map(s=>s.tag).join(", ")); }
+  if (missing.length) { throw Error("Наборы исчезли или сменили URL: "+missing.map(s=>s.tag).join(", ")); }
 }
 async function run(fn, report = $("status")) {
   try {await fn();} catch (e) {report.textContent = e.message;}
@@ -191,49 +234,71 @@ async function buildStatus() {
   const labels = {success:"успешно",failure:"ошибка",in_progress:"выполняется",queued:"в очереди",cancelled:"отменена"};
   $("build").replaceChildren(link," · "+(labels[run.conclusion || run.status] || run.status)+" · "+new Date(run.created_at).toLocaleString("ru"));
 }
-$("check").onclick = () => run(async () => {
-  change();
-  if (!$("token").value.trim()) throw Error("Введите GitHub-токен для проверки черновика.");
-  $("report").textContent = "Отправляем черновик в GitHub…";
-  const version = generation, id = crypto.randomUUID();
-  let sha;
-  try {sha = (await file("preview/request.json")).sha;} catch(e) {if(e.status!==404) throw e;}
-  if (version !== generation) return;
-  await write("preview/request.json",{id,config},sha,"Проверить черновик маршрутизации");
-  if (version !== generation) return;
-  $("report").textContent = "Черновик сохранён. Ожидание проверки в GitHub Actions…";
-  for (let i=0; i<90 && version===generation; i++) {
-    await new Promise(resolve => setTimeout(resolve,10000));
-    if(version!==generation) return;
+async function read(path) {
+  return onPages ? file(path) : {data:await json("../" + path)};
+}
+async function observe(id) {
+  const update = (report, verified = false) => {
+    for (const state of Object.values(views)) {
+      if (state.id === id) Object.assign(state, {report, verified});
+    }
+    if (active?.id === id) controls();
+  };
+  update("Черновик сохранён. Ожидание результата проверки…");
+  for (let attempt = 0; attempt < 90 && latestId === id; attempt++) {
     let result;
-    try {result = (await file("preview/result.json")).data;} catch(e) {if(e.status!==404) throw e;}
-    if(version!==generation) return;
-    if(result?.id!==id) continue;
-    const rows = (result.coverage || []).map(({tag, client, status, skipped}) =>
-      `${tag} → ${clients[client]}: ${status}${skipped.length ? ". Пропущено: " + skipped.join(", ") : ""}`);
-    if (result.issues.length) {
-      $("report").textContent = ["Публикация заблокирована.", ...result.issues, ...rows].join("\n");
+    try { result = (await read("preview/result.json")).data; }
+    catch (error) {
+      if (error.status !== 404) {
+        if (latestId === id) update("Не удалось загрузить результат проверки. " + error.message);
+        return;
+      }
+    }
+    if (latestId !== id) return;
+    if (result?.id === id) {
+      const rows = (result.coverage || []).map(({tag, client, status, skipped}) =>
+        `${tag} → ${clients[client]}: ${status}${skipped.length ? ". Пропущено: " + skipped.join(", ") : ""}`);
+      const ok = result.issues.length === 0;
+      update([ok ? "Проверка завершена." : "Публикация заблокирована.", ...result.issues, ...rows].join("\n"), ok);
       return;
     }
-    checked = version;
-    $("publish").disabled = false;
-    $("report").textContent = ["Проверка завершена. Можно публиковать.", ...rows].join("\n");
-    return;
+    await new Promise(resolve => setTimeout(resolve,10000));
   }
-  if(version===generation) $("report").textContent="Проверка не завершилась. Проверьте workflow «Проверка выбранных наборов» и повторите.";
+  if (latestId === id) update("Проверка не завершилась. Проверьте workflow и повторите.");
+}
+$("check").onclick = () => run(async () => {
+  if (!$("token").value.trim()) throw Error("Введите GitHub-токен для проверки черновика.");
+  const state = active, draft = structuredClone(config), id = crypto.randomUUID();
+  $("editor").disabled = true;
+  try {
+    let sha;
+    try { sha = (await file("preview/request.json")).sha; } catch (e) { if (e.status !== 404) throw e; }
+    await write("preview/request.json",{id,config:draft},sha,"Проверить черновик маршрутизации");
+    latestId = id;
+    state.id = id;
+    state.verified = false;
+    views.draft = state === views.draft ? state : view(draft,id);
+    options();
+    void observe(id);
+  } finally { $("editor").disabled = false; controls(); }
 }, $("report"));
 $("publish").onclick = () => run(async () => {
-  if(checked!==generation) return;
+  if ($("publish").disabled) return;
+  if (snapshot && JSON.stringify(savedConfig) !== JSON.stringify(snapshot.config) &&
+      !window.confirm("Сохранённые настройки отличаются от опубликованного набора. Заменить их выбранной версией?")) return;
   $("editor").disabled=true;
   try {
     const result=await write(configPath,config,revision,"Обновить назначения наборов маршрутизации");
     revision=result.content.sha;
+    savedConfig=structuredClone(config);
     expectedCommit=result.commit?.sha;
-    change(); $("report").textContent="Настройки сохранены. Ожидается сборка подписок.";
+    change();
+    active.report="Настройки сохранены. Ожидается сборка подписок.";
+    controls();
     await buildStatus();
   } finally { $("editor").disabled=false; }
 }, $("report"));
-$("refresh").onclick = $("catalog").onchange = () => run(refresh);
+$("refresh").onclick = $("catalog").onchange = refresh;
 $("query").oninput = matches;
 $("addSet").onsubmit = e => {e.preventDefault();run(()=>{add($("tag").value,$("setUrl").value,null);e.target.reset();});};
 $("addCatalog").onsubmit = e => {e.preventDefault();run(async ()=>{
@@ -243,16 +308,32 @@ $("addCatalog").onsubmit = e => {e.preventDefault();run(async ()=>{
 });};
 $("repo").href=`https://github.com/${repo}`;
 run(async ()=>{
-  const current=onPages ? await file(configPath) : {data:await json("../source/routing.json")};
-  config=current.data;revision=current.sha;
-  if (!onPages) {
-    $("check").disabled=true;
-    const pages = node("a", "Открыть панель на GitHub Pages");
-    pages.href = `https://${owner.toLowerCase()}.github.io/${repository}/`;
-    $("report").replaceChildren("Локальный просмотр. Для проверки откройте опубликованную панель. ", pages);
+  const warnings = [];
+  async function load(path, label, optional = false) {
+    try { return await read(path); }
+    catch (error) {
+      if (!optional || error.status !== 404) warnings.push(label + ". " + error.message);
+    }
   }
-  catalogOptions();selected();$("editor").disabled=false;$("status").textContent="Настройки загружены из "+repo;
-  await refresh();
+  const [published, request, current] = await Promise.all([
+    load("docs/published-routes.json","Не удалось загрузить опубликованный набор"),
+    load("preview/request.json","Не удалось загрузить последний черновик",true),
+    load(configPath,"Не удалось загрузить сохранённую конфигурацию")
+  ]);
+  revision = current?.sha;
+  savedConfig = current?.data;
+  snapshot = published?.data;
+  if (snapshot) views.published = view(snapshot.config);
+  if (request?.data?.id) {
+    latestId = request.data.id;
+    views.draft = view(request.data.config,latestId);
+  }
+  if (views.published || views.draft) {
+    show(views.published ? "published" : "draft");
+    $("editor").disabled=false;
+    if (latestId) void observe(latestId);
+  }
+  $("status").textContent = warnings.join(" ") || "Настройки загружены из " + repo;
 });
 run(buildStatus);
 setInterval(()=>{if(!document.hidden) run(buildStatus);},60000);
