@@ -4,25 +4,26 @@
 
 ## 1. Публикация
 
-1. Создайте **публичный** репозиторий `flymater-routing` на GitHub.
-2. Загрузите **содержимое** этого ZIP в корень репозитория; используйте Commit changes. В веб-интерфейсе GitHub скрытая папка `.github` может потребовать загрузки через git или добавления файла вручную.
-3. Откройте Actions и разрешите выполнение workflow `Generate routing profiles` (если GitHub предлагает).
-4. В Settings → Actions → General → Workflow permissions выберите **Read and write permissions**; это необходимо, чтобы Actions могли коммитить сгенерированные файлы. Если политика аккаунта запрещает запись, используйте локальную сборку по инструкции ниже и коммитьте результат сами.
-5. После изменения файлов в `source/` проверьте зелёный статус Actions и актуальные `awg/`, `shadowrocket/`, `throne/`.
+1. В публичном репозитории разместите файлы проекта в ветке `main`, включая папку `.github/`.
+2. Включите GitHub Actions. В **Settings → Actions → General → Workflow permissions** выберите **Read and write permissions**, чтобы сборка могла сохранять результаты. Правила ветки должны разрешать запись от GitHub Actions и владельца токена панели.
+3. В **Settings → Pages** выберите **Deploy from a branch → main → /docs**. После развёртывания откройте [панель каталогов FlyMater](https://flymater.github.io/flymater-routing/). Панель, опубликованные правила, черновики проверок и подписки доступны для чтения без авторизации.
 
-## 2. URL
+## 2. Ссылки для устройств
 
-Замените `USERNAME` на логин GitHub:
+| Клиент | Подписка |
+| --- | --- |
+| AWG Manager NDMS | [Домены и подсети PROXY](https://raw.githubusercontent.com/FlyMater/flymater-routing/main/awg/proxy.txt) |
+| AWG Manager sing-box Router | [PROXY](https://raw.githubusercontent.com/FlyMater/flymater-routing/main/singbox/proxy.srs) · [DIRECT](https://raw.githubusercontent.com/FlyMater/flymater-routing/main/singbox/direct.srs) · [REJECT](https://raw.githubusercontent.com/FlyMater/flymater-routing/main/singbox/reject.srs) |
+| Shadowrocket | [Конфигурация правил](https://raw.githubusercontent.com/FlyMater/flymater-routing/main/shadowrocket/flymater.conf) |
+| Throne | [Профиль маршрутизации](https://raw.githubusercontent.com/FlyMater/flymater-routing/main/throne/flymater.json) |
 
-- AWG Manager: `https://raw.githubusercontent.com/USERNAME/flymater-routing/main/awg/proxy.txt`
-- Shadowrocket: `https://raw.githubusercontent.com/USERNAME/flymater-routing/main/shadowrocket/flymater.conf`
-- Throne: `https://raw.githubusercontent.com/USERNAME/flymater-routing/main/throne/flymater.json`
-
-В URL используйте реальное имя default branch (в примерах — `main`).
+Для своей копии проекта замените `FlyMater/flymater-routing` в ссылках на владельца и имя своего репозитория.
 
 ## 3. Подключение AWG Manager 2.16.5
 
 Маршрутизация → NDMS → Создать вручную → название `FlyMater PROXY` → «Подписки»: добавьте URL `awg/proxy.txt` → маршрут: нужный AWG-туннель → сохранить и включить. Настройки → Автообновление подписок DNS: 24 часа. Клиентам нужно использовать DNS роутера. NDMS не обеспечивает такую же очередность DIRECT/PROXY, как sing-box; при конфликтующих правилах проверьте фактический маршрут. Если настроен альтернативный движок, у него другие опции.
+
+Для **sing-box Router** добавьте три remote rule sets по ссылкам PROXY, DIRECT и REJECT из раздела 2. Выберите формат binary и интервал обновления. Привяжите PROXY к нужному туннелю, DIRECT к прямому выходу, а REJECT к блокировке. Примените настройки на роутере.
 
 ## 4. Shadowrocket на iPhone/macOS
 
@@ -40,21 +41,17 @@
 
 ### Панель каталогов
 
-После переноса ветки в `main` включите **Settings → Pages → Deploy from a branch → main → /docs**. Для запуска обеих сборок включите Actions, разрешите запись в репозиторий и убедитесь, что правила ветки допускают запись от владельца токена и GitHub Actions. Адрес панели для этого репозитория — `https://flymater.github.io/flymater-routing/`. Панель, черновики, правила и подписки общедоступны.
-
-1. Выберите каталог SagerNet Geosite или GeoIP, найдите тег и добавьте набор. Можно добавить папку GitHub вида `https://github.com/OWNER/REPO/tree/BRANCH/folder` (имя ветки без слешей), собственный HTTPS JSON-индекс или прямой URL набора. Для просмотра индекса его сервер должен разрешать запросы браузера с GitHub Pages (CORS).
-2. Для каждого набора выберите маршрут и устройства. NDMS получает только PROXY. Введите fine-grained GitHub-токен для этого репозитория с **Contents → Read and write**. Панель держит токен в памяти вкладки.
+1. Выберите каталог SagerNet Geosite или GeoIP. Найдите набор по названию, тегу или синониму. Например, `Telegram`, `geosite-telegram` и «Телеграм» найдут один набор. В GeoIP можно искать страну по-русски: «Россия» найдёт `geoip-ru`. Для неизвестных названий панель показывает полный технический тег. Нажмите **Добавить**. Можно добавить папку GitHub вида `https://github.com/OWNER/REPO/tree/BRANCH/folder` (имя ветки без слешей), собственный HTTPS JSON-индекс или прямой URL набора. Для просмотра индекса его сервер должен разрешать запросы браузера с GitHub Pages (CORS).
+2. Для каждого набора выберите маршрут и устройства. Кнопкой **Переименовать** можно задать своё название, в том числе для набора по ссылке. Оно сохраняется при публикации и имеет приоритет при обновлении каталога. Чтобы вернуть исходное название, очистите поле. NDMS получает только PROXY. Введите fine-grained GitHub-токен для этого репозитория с **Contents → Read and write**. Панель держит токен в памяти вкладки.
 3. Нажмите **Проверить черновик**. Панель сохранит запрос в `preview/request.json`. Actions проверит источники и форматы и запишет результат. При несовместимом условии снимите флажок соответствующего клиента или замените набор, затем повторите проверку. Если открыты две вкладки, новая проверка может вытеснить старую. При конфликте сохранения загрузите актуальные настройки и повторите свои изменения.
 4. Нажмите **Опубликовать** и дождитесь успешной сборки подписок в нижнем блоке. Сохранение настроек и обновление подписок — отдельные операции. Новая сборка читает источники заново. Если набор исчез или изменился несовместимым образом, последняя успешная версия подписок остаётся доступной.
 5. Обновление внешних источников происходит при публикации и ежедневно в 03:17 UTC. Запустить сборку вручную можно в **Actions → Generate routing profiles → Run workflow**. Устройства применяют файлы при следующем обновлении своей подписки.
 
-Пример JSON-индекса (теги внутри индекса уникальны):
+В своём JSON-индексе укажите уникальный тег и URL каждого набора. Необязательное поле `name` задаёт название для показа и поиска в панели.
 
 ```json
-{"sets":[{"tag":"telegram","url":"https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-telegram.srs"}]}
+{"sets":[{"tag":"telegram","name":"Мессенджер Telegram","url":"https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-telegram.srs"}]}
 ```
-
-Для AWG Manager **sing-box Router** добавьте три remote rule sets по адресам `https://raw.githubusercontent.com/FlyMater/flymater-routing/main/singbox/proxy.srs`, `…/singbox/direct.srs`, `…/singbox/reject.srs`. Выберите binary, настройте интервал обновления и создайте правила для каждого тега: PROXY — нужный туннель, DIRECT — прямой выход, REJECT — блокировка. Примените настройки на роутере. Для NDMS, Shadowrocket и Throne используйте прежние ссылки из раздела 2.
 
 Ручные списки продолжают участвовать в сборке. При переносе сервиса между маршрутами устраните совпадения с ручными списками, указанные проверкой. Для внешних наборов переносимыми условиями служат точный домен, доменный суффикс и IP/CIDR. В NDMS точный домен требует исключения клиента. Сложные условия sing-box можно оставить только для sing-box. Внешние правила с ведущей точкой у суффикса требуют отдельной проверки представимости.
 
