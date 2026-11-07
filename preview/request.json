@@ -1,5 +1,5 @@
 {
-  "id": "047c0040-f62f-4564-bfeb-3ac99ddcc662",
+  "id": "6a42fa51-99a5-4da8-a1a0-aa51b7fccc69",
   "config": {
     "catalogs": [
       {
@@ -125,5 +125,18 @@
         "exclude": []
       }
     ]
+  },
+  "manual": {
+    "proxy": "# Домены через VPN — начальный пример, дополните своими списками\ntelegram.org\nt.me\ntelegram.me\nopenai.com\nchatgpt.com\n",
+    "direct": "# Прямое соединение\ncursor.com\ncursor.sh\ncursor-cdn.com\ngithub.com\nbeget.com\napple.com\nicloud.com\nicloud-content.com\napple-cloudkit.com\napple-livephotoskit.com\napple-dns.net\ncdn-apple.com\nmzstatic.com\nitunes.com\n",
+    "reject": "# Блокируемые домены (пока пусто)\n",
+    "local": "# Локальные доменные исключения\nlocalhost\nlan\nlocal\n"
+  },
+  "base": {
+    "source/routing.json": "1a23086f1b66473ff9df015f96200ba120aaf7a0",
+    "source/proxy.txt": "f8b5aa3e6f82655a23ef99d9cc42730121009b21",
+    "source/direct.txt": "cf9a114adf6c933e5d0462fc083cf6319181f824",
+    "source/reject.txt": "222b8238d3daf071a0477bbde8196b3f298a3f83",
+    "source/local.txt": "bfe30ff97c3b303dce2e54c8f05a00736e2001da"
   }
 }
