@@ -52,11 +52,41 @@ class RoutingTests(unittest.TestCase):
             gen.main()
             published = self.work / "docs/published-routes.json"
             prior = published.read_bytes()
-            self.assertEqual(json.loads(prior), {"config": json.loads(config.read_text()), "manual": gen.manual(self.work)})
+            self.assertEqual(json.loads(prior), {"config": json.loads(config.read_text()), "manual": gen.manual(self.work),
+                                               "manualText": gen.manual_sources(self.work)})
             config.write_bytes(gen.document(self.cfg))
             with patch.object(gen, "fetch", side_effect=OSError("нет источника")), self.assertRaises(ValueError):
                 gen.main()
             self.assertEqual(published.read_bytes(), prior)
+
+    def test_manual_move_add_and_clear(self):
+        texts = dict(local="", proxy="move.example", direct="", reject="")
+        cfg = {"sets": [], "catalogs": []}
+        def routes():
+            return gen.assemble(ROOT, cfg, self.work, [], manual_text=texts)
+        self.assertIn(b"move.example", routes()["awg/proxy.txt"])
+        texts.update(proxy="", direct="# оставить комментарий\nmove.example\nnew.example\n")
+        outputs = routes()
+        self.assertFalse(outputs["awg/proxy.txt"].strip())
+        for domain in ("move.example", "new.example"):
+            self.assertIn(f"DOMAIN-SUFFIX,{domain},DIRECT".encode(), outputs["shadowrocket/flymater.conf"])
+        self.assertEqual(json.loads(outputs["docs/published-routes.json"])["manualText"], texts)
+
+    def test_preview_manual_and_legacy_request(self):
+        shutil.copytree(ROOT / "source", self.work / "source")
+        preview = self.work / "preview"
+        preview.mkdir()
+        req = {"id": "test", "config": {"sets": [], "catalogs": []}}
+        with patch.object(gen, "ROOT", self.work), patch.object(sys, "argv", ["generate.py", "--preview"]):
+            def check():
+                (preview / "request.json").write_bytes(gen.document(req))
+                gen.main()
+                return json.loads((preview / "result.json").read_text())["issues"]
+            self.assertEqual(check(), [])
+            req["manual"] = dict(local="", proxy="move.example", direct="MOVE.example", reject="")
+            self.assertRegex(check()[0], r"direct\.txt.*move\.example")
+            req["manual"]["direct"] = "https://bad.example"
+            self.assertRegex(check()[0], r"direct\.txt.*https://bad\.example")
 
     def test_add_update_move(self):
         rules = [{"domain_suffix": ["route.example"], "ip_cidr": ["198.51.100.0/24"]}]

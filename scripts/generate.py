@@ -29,12 +29,18 @@ def document(value):
     return (json.dumps(value, ensure_ascii=False, indent=2) + "\n").encode()
 
 
-def manual(root):
+def manual_sources(root):
+    return {name: (root / "source" / f"{name}.txt").read_text() for name in ("local", *POLICIES)}
+
+
+def parse_manual(texts):
     lists = {}
     seen = {}
     for name in ("local", *POLICIES):
         values = {}
-        for line in (root / "source" / f"{name}.txt").read_text().splitlines():
+        if not isinstance(texts, dict) or not isinstance(texts.get(name), str):
+            raise ValueError(f"{name}.txt: отсутствует текст списка")
+        for line in texts[name].splitlines():
             value = line.strip().lower()
             if not value or value.startswith("#"):
                 continue
@@ -43,6 +49,10 @@ def manual(root):
             values[value] = True
         lists[name] = list(values)
     return lists
+
+
+def manual(root):
+    return parse_manual(manual_sources(root))
 
 
 def normalize(key, value):
@@ -150,8 +160,9 @@ def overlaps(assignments):
         active.append((network, policy))
 
 
-def assemble(root, cfg, work, issues, coverage=None):
-    lists = manual(root)
+def assemble(root, cfg, work, issues, coverage=None, manual_text=None):
+    texts = manual_sources(root) if manual_text is None else manual_text
+    lists = parse_manual(texts)
     paths = [https(item["url"]) for item in cfg["catalogs"]]
     if len(set(paths)) != len(paths):
         raise ValueError("Каталог указан дважды")
@@ -244,7 +255,7 @@ def assemble(root, cfg, work, issues, coverage=None):
                 throne.append({"name": f"FlyMater {name.upper()}", "type": "custom", "action": "route", "outbound": "block" if policy == "reject" else policy, **fields})
     outputs["shadowrocket/flymater.conf"] = ("\n".join(sh + ["FINAL,DIRECT"]) + "\n").encode()
     outputs["throne/flymater.json"] = document({"kind": "throne-route-profile", "v": 1, "name": "FlyMater Routing", "default_outbound": "direct", "rules": throne})
-    outputs["docs/published-routes.json"] = document({"config": cfg, "manual": lists})
+    outputs["docs/published-routes.json"] = document({"config": cfg, "manual": lists, "manualText": texts})
     return outputs
 
 
@@ -257,7 +268,8 @@ def main():
     coverage = []
     try:
         with tempfile.TemporaryDirectory() as tmp:
-            outputs = assemble(ROOT, req["config"] if args.preview else req, Path(tmp), issues, coverage)
+            outputs = assemble(ROOT, req["config"] if args.preview else req, Path(tmp), issues, coverage,
+                               req.get("manual") if args.preview else None)
         if issues:
             raise ValueError("\n".join(issues))
         if not args.preview:
