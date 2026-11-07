@@ -146,9 +146,6 @@
       "chatgpt.com"
     ],
     "direct": [
-      "cursor.com",
-      "cursor.sh",
-      "cursor-cdn.com",
       "beget.com",
       "apple.com",
       "icloud.com",
@@ -158,14 +155,18 @@
       "apple-dns.net",
       "cdn-apple.com",
       "mzstatic.com",
-      "itunes.com"
+      "itunes.com",
+      "plaud.ai",
+      "posthog.com",
+      "ncnodes.com",
+      "notube.net"
     ],
     "reject": []
   },
   "manualText": {
     "local": "# Локальные доменные исключения\nlocalhost\nlan\nlocal\n",
     "proxy": "# Домены через VPN — начальный пример, дополните своими списками\ntelegram.org\nt.me\ntelegram.me\nopenai.com\nchatgpt.com\n",
-    "direct": "# Прямое соединение\ncursor.com\ncursor.sh\ncursor-cdn.com\nbeget.com\napple.com\nicloud.com\nicloud-content.com\napple-cloudkit.com\napple-livephotoskit.com\napple-dns.net\ncdn-apple.com\nmzstatic.com\nitunes.com\n",
+    "direct": "# Прямое соединение\nbeget.com\napple.com\nicloud.com\nicloud-content.com\napple-cloudkit.com\napple-livephotoskit.com\napple-dns.net\ncdn-apple.com\nmzstatic.com\nitunes.com\nplaud.ai\nposthog.com\nncnodes.com\nnotube.net\n",
     "reject": "# Блокируемые домены (пока пусто)\n"
   }
 }
