@@ -1,0 +1,27 @@
+{
+  "id": "047c0040-f62f-4564-bfeb-3ac99ddcc662",
+  "issues": [
+    "geosite-kinopub · ndms: ndms: условие domain_regex",
+    "geosite-kinopub · shadowrocket: shadowrocket: условие domain_regex",
+    "geosite-kinopub · throne: throne: условие domain_regex",
+    "geosite-openai · ndms: ndms: условие domain",
+    "geosite-openai · shadowrocket: shadowrocket: условие domain_regex",
+    "geosite-openai · throne: throne: условие domain_regex",
+    "geosite-anthropic · ndms: ndms: условие domain",
+    "geosite-perplexity · ndms: ndms: условие domain",
+    "geosite-google-gemini · ndms: ndms: условие domain",
+    "geosite-github · singbox: github.com назначен в direct и proxy",
+    "geosite-github · ndms: ndms: условие domain",
+    "geosite-github · shadowrocket: github.com назначен в direct и proxy",
+    "geosite-github · throne: github.com назначен в direct и proxy",
+    "geosite-discord · ndms: ndms: условие domain",
+    "geosite-tiktok · ndms: ndms: условие domain",
+    "geosite-youtube · ndms: ndms: условие domain",
+    "geosite-youtube · shadowrocket: domain_suffix: .youtube",
+    "geosite-youtube · throne: domain_suffix: .youtube",
+    "geosite-twitch · ndms: ndms: условие domain",
+    "singbox: cafe.github.com (proxy) пересекается с github.com (direct)",
+    "shadowrocket: cafe.github.com (proxy) пересекается с github.com (direct)",
+    "throne: cafe.github.com (proxy) пересекается с github.com (direct)"
+  ]
+}
