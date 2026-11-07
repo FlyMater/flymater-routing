@@ -42,5 +42,11 @@
       "itunes.com"
     ],
     "reject": []
+  },
+  "manualText": {
+    "local": "# Локальные доменные исключения\nlocalhost\nlan\nlocal\n",
+    "proxy": "# Домены через VPN — начальный пример, дополните своими списками\ntelegram.org\nt.me\ntelegram.me\nopenai.com\nchatgpt.com\n",
+    "direct": "# Прямое соединение\ncursor.com\ncursor.sh\ncursor-cdn.com\ngithub.com\nbeget.com\napple.com\nicloud.com\nicloud-content.com\napple-cloudkit.com\napple-livephotoskit.com\napple-dns.net\ncdn-apple.com\nmzstatic.com\nitunes.com\n",
+    "reject": "# Блокируемые домены (пока пусто)\n"
   }
 }
