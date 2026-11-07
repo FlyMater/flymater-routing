@@ -10,14 +10,19 @@ const configPath = "source/routing.json";
 const clients = {singbox:"AWG sing-box", ndms:"AWG NDMS", shadowrocket:"Shadowrocket", throne:"Throne"};
 let expectedCommit;
 const views = {};
-let active, config, revision, savedConfig, snapshot, latestId;
+const policies = {proxy:"PROXY", direct:"DIRECT", reject:"REJECT", local:"Локальные исключения → DIRECT"};
+const names = Object.keys(policies);
+let active, config, sources, snapshot, latestId;
+function baseline(files) {
+  return Object.fromEntries(Object.entries(files).map(([path, file]) => [path, file.sha]));
+}
 let entries = [], catalogRequest = 0;
-function view(data, id) {
-  return {config:structuredClone(data), id, verified:false, report:""};
+function view(data, manual, id, base = baseline(sources)) {
+  return {config:structuredClone(data), manual:{...manual}, base, id, verified:false, report:""};
 }
 function controls() {
   $("check").disabled = !onPages;
-  $("publish").disabled = !onPages || !revision || !active.verified || active.id !== latestId;
+  $("publish").disabled = !onPages || !sources || !active.verified || active.id !== latestId;
   $("report").textContent = active.report;
   if (!onPages) {
     const pages = node("a", "Открыть панель на GitHub Pages");
@@ -36,7 +41,7 @@ function options() {
 function show(key) {
   active = views[key];
   config = active.config;
-  options(); controls(); catalogOptions(); selected();
+  options(); controls(); catalogOptions(); selected(); manualEditor();
   refresh();
 }
 $("routeView").onchange = event => show(event.target.value);
@@ -60,11 +65,12 @@ async function json(url, options = {}) {
   }
   return response.json();
 }
-async function file(path) {
+async function file(path, ref = branch) {
   const token = $("token").value.trim();
   const headers = token ? {Authorization:`Bearer ${token}`} : {};
-  const blob = await json(`${api}/contents/${path}?ref=${branch}`, {headers, redirect:"error"});
-  return {sha:blob.sha, data:JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(blob.content), c => c.charCodeAt(0))))};
+  const blob = await json(`${api}/contents/${path}?ref=${ref}`, {headers, redirect:"error"});
+  const text = new TextDecoder().decode(Uint8Array.from(atob(blob.content), c => c.charCodeAt(0)));
+  return {sha:blob.sha, data:path.endsWith(".json") ? JSON.parse(text) : text};
 }
 async function write(path, value, sha, message) {
   const token = $("token").value.trim();
@@ -144,15 +150,23 @@ function selected() {
     }
     row.append(targets); list.append(row);
   }
-  if (!snapshot) return;
-  const labels = {proxy:"PROXY", direct:"DIRECT", reject:"REJECT", local:"Локальные исключения → DIRECT"};
-  const groups = Object.entries(snapshot.manual).filter(([, domains]) => domains.length);
-  if (groups.length) list.append(node("h3","Ручные правила"));
-  if (groups.length && active === views.draft) list.append(node("p","Из опубликованной сборки"));
-  for (const [policy, domains] of groups) {
-    const group = node("details");
-    group.append(node("summary", labels[policy] + " · " + domains.length), node("p", domains.join(", ")));
-    list.append(group);
+}
+
+function manualEditor() {
+  const list = $("manual");
+  list.replaceChildren();
+  for (const [name, title] of Object.entries(policies)) {
+    const label = node("label", title);
+    const input = node("textarea");
+    input.rows = 4;
+    input.spellcheck = false;
+    input.value = active.manual[name];
+    input.oninput = () => {
+      active.manual[name] = input.value;
+      change();
+    };
+    label.append(input);
+    list.append(label);
   }
 }
 function catalogOptions(active) {
@@ -235,7 +249,11 @@ async function buildStatus() {
   $("build").replaceChildren(link," · "+(labels[run.conclusion || run.status] || run.status)+" · "+new Date(run.created_at).toLocaleString("ru"));
 }
 async function read(path) {
-  return onPages ? file(path) : {data:await json("../" + path)};
+  if (onPages) return file(path);
+  if (path.endsWith(".json")) return {data:await json("../" + path)};
+  const response = await fetch("../" + path, {cache:"no-store"});
+  if (!response.ok) throw Error(path + " · HTTP " + response.status);
+  return {data:await response.text()};
 }
 async function observe(id) {
   const update = (report, verified = false) => {
@@ -271,32 +289,75 @@ $("check").onclick = () => run(async () => {
   const state = active, draft = structuredClone(config), id = crypto.randomUUID();
   $("editor").disabled = true;
   try {
+    const base = baseline(sources);
+    if (sourcePaths.some(path => state.base[path] !== base[path]) &&
+        !window.confirm("Исходные файлы изменились со времени создания черновика. Проверить его для замены текущих настроек?")) return;
     let sha;
     try { sha = (await file("preview/request.json")).sha; } catch (e) { if (e.status !== 404) throw e; }
-    await write("preview/request.json",{id,config:draft},sha,"Проверить черновик маршрутизации");
+    await write("preview/request.json",{id,config:draft,manual:state.manual,base},sha,"Проверить черновик маршрутизации");
+    state.base = base;
     latestId = id;
     state.id = id;
     state.verified = false;
-    views.draft = state === views.draft ? state : view(draft,id);
+    views.draft = state === views.draft ? state : view(draft,state.manual,id,state.base);
     options();
     void observe(id);
   } finally { $("editor").disabled = false; controls(); }
 }, $("report"));
+const sourcePaths = [configPath, ...names.map(name => `source/${name}.txt`)];
+async function loadSources(ref) {
+  const pairs = await Promise.all(sourcePaths.map(async path =>
+    [path, onPages ? await file(path, ref) : await read(path)]));
+  return Object.fromEntries(pairs);
+}
+
+async function publish(state) {
+  const token = $("token").value.trim();
+  if (!token) throw Error("Введите GitHub-токен для публикации.");
+  const headers = {Authorization:`Bearer ${token}`, "Content-Type":"application/json"};
+  const head = await json(`${api}/git/ref/heads/${branch}`, {headers});
+  const oid = head.object.sha;
+  const [current, request] = await Promise.all([loadSources(oid), file("preview/request.json", oid)]);
+  if (request.data.id !== state.id || sourcePaths.some(path => current[path].sha !== state.base[path])) {
+    throw Error("Исходники или черновик изменились. Обновите страницу и повторите проверку.");
+  }
+  const additions = [];
+  function addFile(path, text) {
+    const bytes = new TextEncoder().encode(text);
+    additions.push({path, contents:btoa(Array.from(bytes, b => String.fromCharCode(b)).join(""))});
+  }
+  if (JSON.stringify(current[configPath].data) !== JSON.stringify(state.config)) {
+    addFile(configPath, JSON.stringify(state.config, null, 2) + "\n");
+  }
+  for (const name of names) {
+    const path = `source/${name}.txt`;
+    if (state.manual[name] !== current[path].data) addFile(path, state.manual[name]);
+  }
+  if (!additions.length) {
+    state.report = "Эти настройки уже сохранены.";
+    return;
+  }
+  const input = {branch:{repositoryNameWithOwner:repo, branchName:branch}, expectedHeadOid:oid,
+    message:{headline:"Обновить правила маршрутизации"}, fileChanges:{additions}};
+  const result = await json("https://api.github.com/graphql", {method:"POST", headers, redirect:"error",
+    body:JSON.stringify({query:"mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input:$input) { commit { oid } } }",
+      variables:{input}})});
+  if (result.errors?.length) throw Error(result.errors[0].message + " Обновите страницу перед повтором.");
+  expectedCommit = result.data.createCommitOnBranch.commit.oid;
+  change();
+  state.report = "Настройки сохранены. Ожидается сборка подписок.";
+  sources = await loadSources(expectedCommit);
+  state.base = baseline(sources);
+  await buildStatus();
+}
 $("publish").onclick = () => run(async () => {
   if ($("publish").disabled) return;
-  if (snapshot && JSON.stringify(savedConfig) !== JSON.stringify(snapshot.config) &&
+  if (snapshot && (JSON.stringify(sources[configPath].data) !== JSON.stringify(snapshot.config) ||
+      names.some(name => snapshot.manualText && snapshot.manualText[name] !== sources[`source/${name}.txt`].data)) &&
       !window.confirm("Сохранённые настройки отличаются от опубликованного набора. Заменить их выбранной версией?")) return;
-  $("editor").disabled=true;
-  try {
-    const result=await write(configPath,config,revision,"Обновить назначения наборов маршрутизации");
-    revision=result.content.sha;
-    savedConfig=structuredClone(config);
-    expectedCommit=result.commit?.sha;
-    change();
-    active.report="Настройки сохранены. Ожидается сборка подписок.";
-    controls();
-    await buildStatus();
-  } finally { $("editor").disabled=false; }
+  $("editor").disabled = true;
+  try { await publish(active); }
+  finally { $("editor").disabled = false; controls(); }
 }, $("report"));
 $("refresh").onclick = $("catalog").onchange = refresh;
 $("query").oninput = matches;
@@ -318,15 +379,26 @@ run(async ()=>{
   const [published, request, current] = await Promise.all([
     load("docs/published-routes.json","Не удалось загрузить опубликованный набор"),
     load("preview/request.json","Не удалось загрузить последний черновик",true),
-    load(configPath,"Не удалось загрузить сохранённую конфигурацию")
+    loadSources()
   ]);
-  revision = current?.sha;
-  savedConfig = current?.data;
+  sources = current;
   snapshot = published?.data;
-  if (snapshot) views.published = view(snapshot.config);
+  const raw = Object.fromEntries(names.map(name => [name, sources[`source/${name}.txt`].data]));
+  if (snapshot) {
+    const manual = {...raw};
+    for (const name of names) {
+      const values = raw[name].split(/\r?\n/).map(s => s.trim().toLowerCase()).filter(s => s && !s.startsWith("#"));
+      if (JSON.stringify([...new Set(values)]) !== JSON.stringify(snapshot.manual[name])) {
+        manual[name] = snapshot.manual[name].join("\n") + (snapshot.manual[name].length ? "\n" : "");
+      }
+    }
+    views.published = view(snapshot.config, snapshot.manualText || manual);
+  }
   if (request?.data?.id) {
-    latestId = request.data.id;
-    views.draft = view(request.data.config,latestId);
+    const draft = request.data;
+    latestId = draft.id;
+    views.draft = view(draft.config, draft.manual || raw, draft.manual && draft.base ? latestId : undefined, draft.base);
+    if (!views.draft.id) views.draft.report = "Проверьте черновик перед публикацией.";
   }
   if (views.published || views.draft) {
     show(views.published ? "published" : "draft");
