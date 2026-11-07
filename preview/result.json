@@ -1,15 +1,6 @@
 {
-  "id": "6a42fa51-99a5-4da8-a1a0-aa51b7fccc69",
-  "issues": [
-    "geosite-github · singbox: github.com назначен в direct и proxy",
-    "geosite-github · ndms: github.com назначен в direct и proxy",
-    "geosite-github · shadowrocket: github.com назначен в direct и proxy",
-    "geosite-github · throne: github.com назначен в direct и proxy",
-    "singbox: cafe.github.com (proxy) пересекается с github.com (direct)",
-    "ndms: cafe.github.com (proxy) пересекается с github.com (direct)",
-    "shadowrocket: cafe.github.com (proxy) пересекается с github.com (direct)",
-    "throne: cafe.github.com (proxy) пересекается с github.com (direct)"
-  ],
+  "id": "dcda74f8-9dcd-4e29-8545-f64ca3acc608",
+  "issues": [],
   "coverage": [
     {
       "tag": "geosite-telegram",
@@ -175,14 +166,6 @@
       "client": "singbox",
       "status": "полностью",
       "skipped": []
-    },
-    {
-      "tag": "geosite-github",
-      "client": "ndms",
-      "status": "частично",
-      "skipped": [
-        "domain"
-      ]
     },
     {
       "tag": "geosite-github",
