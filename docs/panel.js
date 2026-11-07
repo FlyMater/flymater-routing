@@ -58,9 +58,11 @@ function safeUrl(value) {
 async function json(url, options = {}) {
   const response = await fetch(url, {cache:"no-store", ...options});
   if (!response.ok) {
-    const detail = url.startsWith(api + "/contents/") ? await response.json().catch(() => null) : null;
+    const detail = url.startsWith(api + "/") ? await response.json().catch(() => null) : null;
     const error = Error(`HTTP ${response.status} · ${response.status === 409 || response.status === 422 ? "Файл изменился. Перезагрузите настройки перед повтором." : detail?.message || url}`);
     error.status = response.status;
+    error.rateLimited = response.headers.get("x-ratelimit-remaining") === "0" ||
+      response.headers.has("retry-after") || /rate limit/i.test(detail?.message || "");
     throw error;
   }
   return response.json();
@@ -229,15 +231,35 @@ async function loadCatalog(id, url) {
 async function run(fn, report = $("status")) {
   try {await fn();} catch (e) {report.textContent = e.message;}
 }
+let buildRequest = 0;
 async function buildStatus() {
+  const request = ++buildRequest;
+  const token = $("token").value.trim();
+  const headers = token ? {Authorization:`Bearer ${token}`} : {};
   let data;
   try {
     const filter = expectedCommit ? "&head_sha="+encodeURIComponent(expectedCommit) : "";
-    data = await json(`${api}/actions/workflows/generate.yml/runs?branch=main&per_page=1${filter}`);
+    data = await json(`${api}/actions/workflows/generate.yml/runs?branch=main&per_page=1${filter}`, {headers, redirect:"error"});
   } catch (error) {
-    $("build").textContent = error.status === 404 ? "Сведения о сборке пока недоступны." : error.message;
+    if (request !== buildRequest) return;
+    let message = error.message;
+    if (error.rateLimited || error.status === 429) {
+      message = token ? "Достигнут лимит запросов GitHub. Статус обновится позже." :
+        "Достигнут лимит запросов GitHub. Введите токен для просмотра статуса или повторите позже.";
+    } else if (error.status === 403) {
+      message = token ? "GitHub отказал в доступе к статусу. Проверьте право токена Actions → Read." :
+        "GitHub отказал в доступе к статусу. Введите токен с правом Actions → Read.";
+    } else if (error.status === 401) {
+      message = "GitHub не принял токен. Проверьте его и срок действия.";
+    } else if (error.status === 404) {
+      message = "Сведения о сборке пока недоступны.";
+    }
+    const link = node("a", "Открыть сборки на GitHub ↗");
+    link.href = `https://github.com/${repo}/actions/workflows/generate.yml`;
+    $("build").replaceChildren(message + " ", link);
     return;
   }
+  if (request !== buildRequest) return;
   const run = data.workflow_runs[0];
   if (!run) {
     $("build").textContent = expectedCommit ? "Ожидание запуска для сохранённых настроек…" : "Сборок пока нет.";
@@ -407,5 +429,6 @@ run(async ()=>{
   }
   $("status").textContent = warnings.join(" ") || "Настройки загружены из " + repo;
 });
+$("token").onchange = () => run(buildStatus);
 run(buildStatus);
 setInterval(()=>{if(!document.hidden) run(buildStatus);},60000);
