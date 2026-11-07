@@ -1,5 +1,5 @@
 {
-  "id": "04000043-a14a-4d55-8ec5-cd4a33b3a4af",
+  "id": "9722efb6-75bf-4f7d-aac0-16f242f5c8f7",
   "config": {
     "catalogs": [
       {
@@ -135,14 +135,14 @@
   },
   "manual": {
     "local": "# Локальные доменные исключения\nlocalhost\nlan\nlocal\n",
-    "proxy": "# Домены через VPN — начальный пример, дополните своими списками\ntelegram.org\nt.me\ntelegram.me\nopenai.com\nchatgpt.com\n",
-    "direct": "# Прямое соединение\nbeget.com\napple.com\nicloud.com\nicloud-content.com\napple-cloudkit.com\napple-livephotoskit.com\napple-dns.net\ncdn-apple.com\nmzstatic.com\nitunes.com\nplaud.ai\nposthog.com\nncnodes.com\nnotube.net\n",
+    "proxy": "# Домены через VPN — начальный пример, дополните своими списками\nplaud.ai\nposthog.com\nncnodes.com\nnotube.net\npotok.cash\napi.teleos.club\nvdsina.com\ntiktokv.eu\ntiktokglobalshopv.com\nblackbit-exchange.com\nblackbit.exchange\ncrypttex.com\ncloudflare-ech.com\ncashflow.fund\nnnmclub.to\nnnmstatic.win\nrutracker.org\nrutrk.org\nbongacams.com\nrutracker.cc\nmarathonbet.com\nsberkassa.site\n4vps.su\ndbankcloud.ru\natsecret.com\nconverter.app\nerub.site\nforum.ru-board.com\nerub.money\ntronscan.org\napi.revenuecat.com\nassetsconfigcdn.org\nstudio-api-prod.suno.com\napi.segment.io\nmetrics-prod.suno.com\nsuno.com\nsuno.ai\nhcaptcha.com\nd2lwuy8qc234o3.cloudfront.net\nably.net\nfeatureassets.org\nprodregistryv2.org\nrevenuecat.com\nbraze.com\nroyallib.com\nwinance.exchange\nkino.watch",
+    "direct": "# Прямое соединение\nbeget.com\napple.com\nicloud.com\nicloud-content.com\napple-cloudkit.com\napple-livephotoskit.com\napple-dns.net\ncdn-apple.com\nmzstatic.com\nitunes.com\n\n",
     "reject": "# Блокируемые домены (пока пусто)\n"
   },
   "base": {
     "source/routing.json": "4e028e602a23fa2658647b6a1af32031c5ad3211",
     "source/proxy.txt": "f8b5aa3e6f82655a23ef99d9cc42730121009b21",
-    "source/direct.txt": "d244dc87421acfa4d2c78cd66d4b55eda6cdd600",
+    "source/direct.txt": "0cc7eff4012a0bcb338c5769516c4780ffe4eed0",
     "source/reject.txt": "222b8238d3daf071a0477bbde8196b3f298a3f83",
     "source/local.txt": "bfe30ff97c3b303dce2e54c8f05a00736e2001da"
   }
