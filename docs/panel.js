@@ -1,4 +1,4 @@
-import {describe} from "./names.js";
+import {describe, geositeCatalog, useGeositeExamples} from "./names.js";
 const $ = id => document.getElementById(id);
 const onPages = location.hostname.endsWith(".github.io");
 const owner = onPages ? location.hostname.split(".")[0] : "FlyMater";
@@ -49,10 +49,15 @@ function change() {
   $("publish").disabled = true;
   $("report").textContent = "Есть изменения. Проверьте черновик перед публикацией.";
 }
-function titleFor(tag, title) {
-  const heading = node("strong", title);
-  if (title !== tag) heading.append(node("code", tag));
-  return heading;
+function titleFor(tag, catalog, customName) {
+  const {name, description} = describe(tag, catalog);
+  const title = customName || name;
+  const info = node("div");
+  info.className = "set-info";
+  info.append(node("strong", title));
+  if (description) info.append(node("span", description));
+  if (description || title !== tag) info.append(node("code", tag));
+  return info;
 }
 function add(tag, url, catalog, catalogName) {
   url = safeUrl(url);
@@ -65,7 +70,8 @@ function matches() {
   const catalog = $("catalog").value;
   const chosen = new Map(config.sets.map(item => [item.url, item]));
   const filtered = entries.filter(entry => {
-    const words = [entry.tag, entry.name, chosen.get(entry.url)?.name, ...describe(entry.tag, catalog)];
+    const {name, description, aliases} = describe(entry.tag, catalog);
+    const words = [entry.tag, entry.name, chosen.get(entry.url)?.name, name, description, aliases];
     return words.join(" ").toLowerCase().includes(query);
   });
   $("matches").replaceChildren();
@@ -74,7 +80,7 @@ function matches() {
     const row = node("article"), btn = node("button","Добавить");
     btn.disabled = chosen.has(url);
     btn.onclick = () => run(() => add(tag,url,catalog,name));
-    row.append(titleFor(tag, chosen.get(url)?.name || name || describe(tag, catalog)[0]),btn); $("matches").append(row);
+    row.append(titleFor(tag, catalog, chosen.get(url)?.name || name),btn); $("matches").append(row);
   }
 }
 function selected() {
@@ -87,7 +93,7 @@ function selected() {
     policy.value = item.policy;
     policy.onchange = () => {item.policy = policy.value; change(); selected();};
     remove.onclick = () => {config.sets.splice(config.sets.indexOf(item),1);change();selected();matches();};
-    const defaultName = item.catalogName || describe(item.tag, item.catalog)[0];
+    const defaultName = item.catalogName || describe(item.tag, item.catalog).name;
     const rename = node("button", "Переименовать");
     rename.onclick = () => {
       const value = window.prompt("Своё название. Очистите поле, чтобы вернуть исходное.", item.name || defaultName);
@@ -96,7 +102,7 @@ function selected() {
       else delete item.name;
       change(); selected(); matches();
     };
-    row.append(titleFor(item.tag, item.name || defaultName), policy, rename, remove, node("small",item.url));
+    row.append(titleFor(item.tag, item.catalog, item.name || defaultName), policy, rename, remove, node("small",item.url));
     const targets = node("div"); targets.className = "clients";
     for (const [key,title] of Object.entries(clients)) {
       const label = node("label"), input = node("input");
@@ -133,6 +139,20 @@ async function refresh() {
     if (!row.tag?.trim() || tags.has(row.tag)) throw Error("Пустой или повторный тег в каталоге");
     row.name = typeof row.name === "string" ? row.name.trim() || undefined : undefined;
     tags.add(row.tag);
+  }
+  if (url === geositeCatalog || config.sets.some(item => item.catalog === geositeCatalog)) {
+    const bundled = new URL("./geosite-examples.json", import.meta.url);
+    let samples;
+    try {
+      samples = onPages
+        ? await json(`https://raw.githubusercontent.com/${repo}/${branch}/docs/geosite-examples.json`)
+        : await json(bundled);
+    } catch (error) {
+      if (!onPages) throw error;
+      samples = await json(bundled);
+    }
+    if (id !== catalogRequest) return;
+    useGeositeExamples(samples);
   }
   if (id !== catalogRequest) return;
   entries = rows;

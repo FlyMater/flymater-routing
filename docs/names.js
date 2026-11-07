@@ -1,33 +1,51 @@
-const services = new Map(Object.entries({
-  telegram: ["Telegram", "телеграм телеграмм"],
-  youtube: ["YouTube", "ютуб ютьюб"],
-  whatsapp: ["WhatsApp", "ватсап вотсап"],
-  discord: ["Discord", "дискорд"],
-  github: ["GitHub", "гитхаб"],
-  google: ["Google", "гугл"],
-  apple: ["Apple", "эппл"],
-  openai: ["OpenAI", "ChatGPT чатгпт"],
-  anthropic: ["Anthropic", "Claude клод"],
-  netflix: ["Netflix", "нетфликс"],
-  instagram: ["Instagram", "инстаграм"],
-  tiktok: ["TikTok", "тикток"],
-  notion: ["Notion", "ноушен"],
-  zoom: ["Zoom", "зум"],
-  pinterest: ["Pinterest", "пинтерест"],
-  microsoft: ["Microsoft", "майкрософт"],
-  "category-ai-!cn": ["Сервисы ИИ за пределами Китая", "искусственный интеллект"],
-  "category-ads-all": ["Рекламные сети", "реклама"],
-  "category-games": ["Игры", "игровые сервисы"]
+import {geosite} from "./geosite.js";
+
+const aliases = new Map(Object.entries({
+  telegram: "телеграм телеграмм",
+  youtube: "ютуб ютьюб",
+  whatsapp: "ватсап вотсап",
+  discord: "дискорд",
+  github: "гитхаб",
+  google: "гугл",
+  apple: "эппл",
+  openai: "ChatGPT чатгпт",
+  anthropic: "Claude клод",
+  netflix: "нетфликс",
+  instagram: "инстаграм",
+  tiktok: "тикток",
+  notion: "ноушен",
+  zoom: "зум",
+  pinterest: "пинтерест",
+  microsoft: "майкрософт",
+  "category-ai-!cn": "искусственный интеллект",
+  "category-ads-all": "реклама",
+  "category-games": "игровые сервисы"
 }));
 const regions = new Intl.DisplayNames(["ru"], {type:"region", fallback:"none"});
 
+export const geositeCatalog = "https://github.com/SagerNet/sing-geosite/tree/rule-set";
+let examples = new Map();
+
+export function useGeositeExamples(rows) {
+  examples = new Map(Object.entries(rows));
+}
+
 export function describe(tag, catalog) {
-  if (catalog === "https://github.com/SagerNet/sing-geosite/tree/rule-set" && tag.startsWith("geosite-")) {
-    return services.get(tag.slice(8)) || [tag, ""];
+  if (catalog === geositeCatalog && tag.startsWith("geosite-")) {
+    const key = tag.slice(8);
+    const [service, variant] = key.split("@");
+    const baseName = geosite.get(service)?.[0] ?? service.replaceAll("-", " ");
+    const qualifiers = {ads: "реклама", telemetry: "телеметрия", cn: "материковый Китай", "!cn": "за пределами материкового Китая"};
+    const fallbackName = variant ? `${baseName} · ${Object.hasOwn(qualifiers, variant) ? qualifiers[variant] : variant}` : baseName;
+    const [name, purpose] = geosite.get(key) ?? [fallbackName, ""];
+    const domains = examples.get(key) ?? [];
+    const sample = domains.length ? `В набор ${domains.length === 1 ? "входит" : "входят"} ${domains.join(", ")}.` : "";
+    const description = [purpose, sample].filter(Boolean).join(" ") || "Описание пока не добавлено";
+    return {name, description, aliases: aliases.get(key) ?? ""};
   }
   if (catalog === "https://github.com/SagerNet/sing-geoip/tree/rule-set" && /^geoip-[a-z]{2}$/i.test(tag)) {
     const country = regions.of(tag.slice(6).toUpperCase());
-    if (country) return [country + " · IP-адреса", ""];
+    if (country) return {name: country + " · IP-адреса"};
   }
-  return [tag, ""];
+  return {name: tag};
 }
