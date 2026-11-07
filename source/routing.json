@@ -1,0 +1,7 @@
+{
+  "catalogs": [
+    {"name": "SagerNet Geosite", "url": "https://github.com/SagerNet/sing-geosite/tree/rule-set"},
+    {"name": "SagerNet GeoIP", "url": "https://github.com/SagerNet/sing-geoip/tree/rule-set"}
+  ],
+  "sets": []
+}

@@ -1,30 +1,28 @@
 name: Generate routing profiles
 on:
   push:
-    paths:
-      - 'source/**'
-      - 'scripts/generate.py'
-      - '.github/workflows/generate.yml'
+    branches: [main]
+    paths: ['source/**', 'scripts/**', '.github/workflows/generate.yml']
+  schedule:
+    - cron: '17 3 * * *'
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: profiles-${{ github.ref }}
 jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: true
+          ref: ${{ github.ref_name }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - uses: ./.github/actions/sing-box
       - run: python scripts/generate.py
-      - name: Commit generated profiles
+      - name: Опубликовать проверенные подписки
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add awg/ shadowrocket/ throne/
-          if ! git diff --cached --quiet; then
-            git commit -m "Generate FlyMater Routing subscriptions"
-            git push
-          fi
+          git add awg shadowrocket throne singbox
+          bash scripts/publish.sh "Обновить подписки маршрутизации"

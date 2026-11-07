@@ -1,0 +1,25 @@
+name: Проверка выбранных наборов
+on:
+  push:
+    branches: [main]
+    paths: ['preview/request.json']
+permissions:
+  contents: write
+concurrency:
+  group: routing-preview
+  cancel-in-progress: true
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: ./.github/actions/sing-box
+      - run: python scripts/generate.py --preview
+      - run: |
+          git add preview/result.json
+          bash scripts/publish.sh "Сохранить результат проверки маршрутов" preview/request.json
