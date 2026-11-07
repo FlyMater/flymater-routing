@@ -66,13 +66,32 @@ class RoutingTests(unittest.TestCase):
             rule = next(r for r in json.loads(out["throne/flymater.json"])["rules"] if "updated.example" in r.get("domain_suffix", []))
             self.assertEqual(rule["outbound"], "direct")
 
-    def test_exact_requires_ndms_exclusion(self):
+    def test_exact_only_skips_ndms(self):
         with patch.object(gen, "fetch", return_value=self.source([{"domain": "exact.example"}])):
-            self.assertIn("ndms", str(self.build()[1]))
-            self.item["exclude"] = ["ndms"]
-            out, issues = self.build()
+            coverage, issues = [], []
+            out = gen.assemble(ROOT, self.cfg, self.work, issues, coverage)
+            ndms = next(row for row in coverage if row["client"] == "ndms")
+            self.assertEqual(ndms["status"], "не вошёл в подписку")
+            self.assertNotIn(b"exact.example", out["awg/proxy.txt"])
             self.assertFalse(issues)
             self.assertIn(b"DOMAIN,exact.example,PROXY", out["shadowrocket/flymater.conf"])
+
+    def test_partial_coverage_preserves_constraints(self):
+        rules = [{"domain_suffix": ["site.example"], "domain_regex": ["^foo[0-9]+$"]},
+                 {"domain": ["limited.example"], "port": [443]}]
+        coverage, issues = [], []
+        with patch.object(gen, "fetch", return_value=self.source(rules)):
+            outputs = gen.assemble(ROOT, self.cfg, self.work, issues, coverage)
+        self.assertFalse(issues)
+        shadow = outputs["shadowrocket/flymater.conf"]
+        self.assertIn(b"DOMAIN-SUFFIX,site.example,PROXY", shadow)
+        self.assertNotIn(b"limited.example", shadow)
+        report = next(r for r in coverage if r["client"] == "shadowrocket")
+        self.assertEqual(report["status"], "частично")
+        self.assertEqual(set(report["skipped"]), {"domain_regex", "port"})
+        throne = json.loads(outputs["throne/flymater.json"])["rules"]
+        self.assertTrue(any(r.get("domain_regex") == ["^foo[0-9]+$"] for r in throne))
+        self.assertTrue(any("limited.example" in r.get("domain", []) and r.get("port") in (443, [443]) for r in throne))
 
     def test_unavailable_and_missing(self):
         with patch.object(gen, "fetch", side_effect=OSError("нет источника")), self.assertRaisesRegex(ValueError, "нет источника"):
