@@ -23,7 +23,8 @@ function safeUrl(value) {
 async function json(url, options = {}) {
   const response = await fetch(url, {cache:"no-store", ...options});
   if (!response.ok) {
-    const error = Error(`HTTP ${response.status} · ${response.status === 409 || response.status === 422 ? "Файл изменился. Перезагрузите настройки перед повтором." : url}`);
+    const detail = url.startsWith(api + "/contents/") ? await response.json().catch(() => null) : null;
+    const error = Error(`HTTP ${response.status} · ${response.status === 409 || response.status === 422 ? "Файл изменился. Перезагрузите настройки перед повтором." : detail?.message || url}`);
     error.status = response.status;
     throw error;
   }
@@ -47,7 +48,7 @@ function change() {
   generation++;
   checked = undefined;
   $("publish").disabled = true;
-  $("report").textContent = "Есть изменения. Проверьте черновик перед публикацией.";
+  if (onPages) $("report").textContent = "Есть изменения. Проверьте черновик перед публикацией.";
 }
 function titleFor(tag, catalog, customName) {
   const {name, description} = describe(tag, catalog);
@@ -109,7 +110,7 @@ function selected() {
       input.type = "checkbox"; input.disabled = key === "ndms" && item.policy !== "proxy";
       input.checked = !input.disabled && !item.exclude.includes(key);
       input.onchange = () => {item.exclude = input.checked ? item.exclude.filter(c => c!==key) : [...item.exclude,key];change();};
-      label.append(input, title); targets.append(label);
+      label.append(input, input.disabled ? title + " (только PROXY)" : title); targets.append(label);
     }
     row.append(targets); list.append(row);
   }
@@ -168,8 +169,8 @@ async function refresh() {
   const missing = config.sets.filter(s => s.catalog === url && !rows.some(r => r.tag===s.tag && r.url===s.url));
   if (missing.length) { change(); throw Error("Наборы исчезли или сменили URL: "+missing.map(s=>s.tag).join(", ")); }
 }
-async function run(fn) {
-  try {await fn();} catch (e) {$("status").textContent = e.message;}
+async function run(fn, report = $("status")) {
+  try {await fn();} catch (e) {report.textContent = e.message;}
 }
 async function buildStatus() {
   let data;
@@ -192,10 +193,14 @@ async function buildStatus() {
 }
 $("check").onclick = () => run(async () => {
   change();
+  if (!$("token").value.trim()) throw Error("Введите GitHub-токен для проверки черновика.");
+  $("report").textContent = "Отправляем черновик в GitHub…";
   const version = generation, id = crypto.randomUUID();
   let sha;
   try {sha = (await file("preview/request.json")).sha;} catch(e) {if(e.status!==404) throw e;}
+  if (version !== generation) return;
   await write("preview/request.json",{id,config},sha,"Проверить черновик маршрутизации");
+  if (version !== generation) return;
   $("report").textContent = "Черновик сохранён. Ожидание проверки в GitHub Actions…";
   for (let i=0; i<90 && version===generation; i++) {
     await new Promise(resolve => setTimeout(resolve,10000));
@@ -204,11 +209,19 @@ $("check").onclick = () => run(async () => {
     try {result = (await file("preview/result.json")).data;} catch(e) {if(e.status!==404) throw e;}
     if(version!==generation) return;
     if(result?.id!==id) continue;
-    if(result.issues.length) { $("report").textContent=result.issues.join("\n"); return; }
-    checked=version; $("publish").disabled=false; $("report").textContent="Все выбранные назначения совместимы."; return;
+    const rows = (result.coverage || []).map(({tag, client, status, skipped}) =>
+      `${tag} → ${clients[client]}: ${status}${skipped.length ? ". Пропущено: " + skipped.join(", ") : ""}`);
+    if (result.issues.length) {
+      $("report").textContent = ["Публикация заблокирована.", ...result.issues, ...rows].join("\n");
+      return;
+    }
+    checked = version;
+    $("publish").disabled = false;
+    $("report").textContent = ["Проверка завершена. Можно публиковать.", ...rows].join("\n");
+    return;
   }
   if(version===generation) $("report").textContent="Проверка не завершилась. Проверьте workflow «Проверка выбранных наборов» и повторите.";
-});
+}, $("report"));
 $("publish").onclick = () => run(async () => {
   if(checked!==generation) return;
   $("editor").disabled=true;
@@ -219,7 +232,7 @@ $("publish").onclick = () => run(async () => {
     change(); $("report").textContent="Настройки сохранены. Ожидается сборка подписок.";
     await buildStatus();
   } finally { $("editor").disabled=false; }
-});
+}, $("report"));
 $("refresh").onclick = $("catalog").onchange = () => run(refresh);
 $("query").oninput = matches;
 $("addSet").onsubmit = e => {e.preventDefault();run(()=>{add($("tag").value,$("setUrl").value,null);e.target.reset();});};
@@ -234,7 +247,9 @@ run(async ()=>{
   config=current.data;revision=current.sha;
   if (!onPages) {
     $("check").disabled=true;
-    $("report").textContent="Локальный просмотр. Проверка и публикация доступны на GitHub Pages.";
+    const pages = node("a", "Открыть панель на GitHub Pages");
+    pages.href = `https://${owner.toLowerCase()}.github.io/${repository}/`;
+    $("report").replaceChildren("Локальный просмотр. Для проверки откройте опубликованную панель. ", pages);
   }
   catalogOptions();selected();$("editor").disabled=false;$("status").textContent="Настройки загружены из "+repo;
   await refresh();

@@ -54,19 +54,57 @@ def normalize(key, value):
     return value
 
 
-def portable(rules, client):
+# Destination matchers in a default rule are alternatives. Other fields can
+# constrain the entire rule (port, source, inversion, etc.).
+DESTINATIONS = {"domain", "domain_suffix", "domain_keyword", "domain_regex", "ip_cidr"}
+THRONE_FILTERS = {"port", "port_range", "source_port", "source_port_range", "source_ip_cidr",
+                  "process_name", "process_path", "process_path_regex", "package_name",
+                  "network", "wifi_ssid", "wifi_bssid", "invert"}
+
+
+def project(rule, client, skipped):
+    if rule.get("type") == "logical" and rule.get("mode") == "or" and not rule.get("invert"):
+        return [entry for child in rule["rules"] for entry in project(child, client, skipped)]
+    fields = {k: v for k, v in rule.items() if not (k == "type" and v == "default")}
+    constraints = fields.keys() - DESTINATIONS
+    if constraints:
+        if client == "throne" and constraints <= THRONE_FILTERS:
+            # Throne has a single network selector. Preserve multi-network
+            # rules as independent alternatives.
+            networks = fields.get("network")
+            if isinstance(networks, list) and fields.get("invert"):
+                skipped.update(("network", "invert"))
+                return []
+            variants = [dict(fields, network=n) for n in networks] if isinstance(networks, list) else [fields]
+            return [("compound", json.dumps(v, sort_keys=True)) for v in variants]
+        skipped.update(constraints)
+        return []
     result = []
-    for rule in rules:
-        for key, values in rule.items():
-            if key not in ("domain", "domain_suffix", "ip_cidr") or (key == "domain" and client == "ndms"):
-                raise ValueError(f"{client}: условие {key}")
-            if isinstance(values, str):
-                values = [values]
-            if not isinstance(values, list) or not values:
-                raise ValueError(f"Пустое условие {key}")
-            result.extend((key, normalize(key, v)) for v in values)
-        if not rule:
-            raise ValueError("Пустое правило")
+    for key, values in fields.items():
+        if isinstance(values, str):
+            values = [values]
+        if not isinstance(values, list) or not values:
+            raise ValueError(f"Пустое условие {key}")
+        if ((key == "domain_regex" and client not in ("singbox", "throne"))
+                or (client == "ndms" and key in ("domain", "domain_keyword"))):
+            skipped.add(key)
+            continue
+        for value in values:
+            if key in ("domain_keyword", "domain_regex"):
+                if client == "shadowrocket" and any(c in value for c in ",\r\n"):
+                    skipped.add(key)
+                    continue
+            elif key == "domain_suffix" and value.startswith(".") and client in ("throne", "singbox"):
+                pass  # Both use sing-box suffix semantics.
+            else:
+                try:
+                    value = normalize(key, value)
+                except ValueError:
+                    if key == "ip_cidr":
+                        raise
+                    skipped.add(f"{key} ({value})")
+                    continue
+            result.append((key, value))
     return result
 
 
@@ -112,7 +150,7 @@ def overlaps(assignments):
         active.append((network, policy))
 
 
-def assemble(root, cfg, work, issues):
+def assemble(root, cfg, work, issues, coverage=None):
     lists = manual(root)
     paths = [https(item["url"]) for item in cfg["catalogs"]]
     if len(set(paths)) != len(paths):
@@ -148,17 +186,17 @@ def assemble(root, cfg, work, issues):
             if client in item["exclude"] or (client == "ndms" and policy != "proxy"):
                 continue
             try:
+                skipped = set()
+                entries = [entry for rule in rules for entry in project(rule, client, skipped)]
                 if client == "singbox":
                     groups[client][policy].extend(rules)
-                    entries = []
-                    for rule in rules:
-                        try:
-                            entries.extend(portable([rule], client))
-                        except ValueError:
-                            # Complex rules are preserved and checked for identical assignments.
-                            entries.append(("native", json.dumps(rule, sort_keys=True)))
-                else:
-                    entries = portable(rules, client)
+                    entries.extend(("native", json.dumps(r, sort_keys=True)) for r in rules)
+                    skipped.clear()
+                if coverage is not None:
+                    status = "полностью" if entries else "не вошёл в подписку"
+                    if entries and skipped:
+                        status = "частично"
+                    coverage.append({"tag": tag, "client": client, "status": status, "skipped": sorted(skipped)})
                 for key in entries:
                     previous = assignments[client].setdefault(key, policy)
                     if previous != policy:
@@ -194,9 +232,13 @@ def assemble(root, cfg, work, issues):
             extra = [] if name == "local" else groups[client][policy]
             fields = {}
             for key, value in dict.fromkeys(base + extra):
+                if key == "compound":
+                    throne.append({"name": f"FlyMater {name.upper()}", "type": "custom", "action": "route",
+                                   "outbound": "block" if policy == "reject" else policy, **json.loads(value)})
+                    continue
                 fields.setdefault(key, []).append(value)
                 if client == "shadowrocket":
-                    kind = {"domain": "DOMAIN", "domain_suffix": "DOMAIN-SUFFIX", "ip_cidr": "IP-CIDR6" if ":" in value else "IP-CIDR"}[key]
+                    kind = {"domain": "DOMAIN", "domain_keyword": "DOMAIN-KEYWORD", "domain_suffix": "DOMAIN-SUFFIX", "ip_cidr": "IP-CIDR6" if ":" in value else "IP-CIDR"}[key]
                     sh.append(f"{kind},{value},{policy.upper()}" + (",no-resolve" if key == "ip_cidr" else ""))
             if client == "throne" and fields:
                 throne.append({"name": f"FlyMater {name.upper()}", "type": "custom", "action": "route", "outbound": "block" if policy == "reject" else policy, **fields})
@@ -211,9 +253,10 @@ def main():
     args = parser.parse_args()
     req = json.loads((ROOT / ("preview/request.json" if args.preview else "source/routing.json")).read_text())
     issues = []
+    coverage = []
     try:
         with tempfile.TemporaryDirectory() as tmp:
-            outputs = assemble(ROOT, req["config"] if args.preview else req, Path(tmp), issues)
+            outputs = assemble(ROOT, req["config"] if args.preview else req, Path(tmp), issues, coverage)
         if issues:
             raise ValueError("\n".join(issues))
         if not args.preview:
@@ -227,7 +270,7 @@ def main():
         if not issues:
             issues.append(str(exc))
     if args.preview:
-        (ROOT / "preview/result.json").write_bytes(document({"id": req["id"], "issues": issues}))
+        (ROOT / "preview/result.json").write_bytes(document({"id": req["id"], "issues": issues, "coverage": coverage}))
 
 
 if __name__ == "__main__":
