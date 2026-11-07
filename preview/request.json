@@ -1,0 +1,129 @@
+{
+  "id": "047c0040-f62f-4564-bfeb-3ac99ddcc662",
+  "config": {
+    "catalogs": [
+      {
+        "name": "SagerNet Geosite",
+        "url": "https://github.com/SagerNet/sing-geosite/tree/rule-set"
+      },
+      {
+        "name": "SagerNet GeoIP",
+        "url": "https://github.com/SagerNet/sing-geoip/tree/rule-set"
+      }
+    ],
+    "sets": [
+      {
+        "tag": "geosite-telegram",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-telegram.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-kinopub",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-kinopub.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-openai",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-openai.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-anthropic",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-anthropic.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-perplexity",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-perplexity.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-google-gemini",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-google-gemini.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-github",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-github.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-instagram",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-instagram.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-discord",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-discord.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-pinterest",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-pinterest.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-xai",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-xai.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-tiktok",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-tiktok.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-youtube",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-youtube.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-zoom",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-zoom.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-twitch",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-twitch.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      },
+      {
+        "tag": "geosite-whatsapp",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-whatsapp.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
+      }
+    ]
+  }
+}
