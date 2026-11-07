@@ -122,6 +122,13 @@
         "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
         "policy": "proxy",
         "exclude": []
+      },
+      {
+        "tag": "geosite-cursor",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cursor.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "direct",
+        "exclude": []
       }
     ]
   },
