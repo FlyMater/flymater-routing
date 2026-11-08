@@ -1,5 +1,5 @@
 {
-  "id": "9722efb6-75bf-4f7d-aac0-16f242f5c8f7",
+  "id": "c87a34dc-8ddf-4622-9d7a-069686168c75",
   "issues": [],
   "coverage": [
     {
@@ -420,6 +420,63 @@
     },
     {
       "tag": "geosite-cursor",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-google",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-google",
+      "client": "ndms",
+      "status": "частично",
+      "skipped": [
+        "domain",
+        "domain_regex",
+        "domain_suffix (.android)",
+        "domain_suffix (.chrome)",
+        "domain_suffix (.dclk)",
+        "domain_suffix (.gbiz)",
+        "domain_suffix (.gle)",
+        "domain_suffix (.gmail)",
+        "domain_suffix (.goog)",
+        "domain_suffix (.google)",
+        "domain_suffix (.guge)",
+        "domain_suffix (.hangout)",
+        "domain_suffix (.nexus)",
+        "domain_suffix (.xn--flw351e)",
+        "domain_suffix (.xn--qcka1pmc)",
+        "domain_suffix (.youtube)"
+      ]
+    },
+    {
+      "tag": "geosite-google",
+      "client": "shadowrocket",
+      "status": "частично",
+      "skipped": [
+        "domain_regex",
+        "domain_suffix (.android)",
+        "domain_suffix (.chrome)",
+        "domain_suffix (.dclk)",
+        "domain_suffix (.gbiz)",
+        "domain_suffix (.gle)",
+        "domain_suffix (.gmail)",
+        "domain_suffix (.goog)",
+        "domain_suffix (.google)",
+        "domain_suffix (.guge)",
+        "domain_suffix (.hangout)",
+        "domain_suffix (.nexus)",
+        "domain_suffix (.xn--flw351e)",
+        "domain_suffix (.xn--qcka1pmc)",
+        "domain_suffix (.youtube)"
+      ]
+    },
+    {
+      "tag": "geosite-google",
       "client": "throne",
       "status": "полностью",
       "skipped": []
