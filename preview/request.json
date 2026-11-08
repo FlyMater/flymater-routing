@@ -1,5 +1,5 @@
 {
-  "id": "9722efb6-75bf-4f7d-aac0-16f242f5c8f7",
+  "id": "c87a34dc-8ddf-4622-9d7a-069686168c75",
   "config": {
     "catalogs": [
       {
@@ -130,6 +130,13 @@
         "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
         "policy": "direct",
         "exclude": []
+      },
+      {
+        "tag": "geosite-google",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-google.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
       }
     ]
   },
@@ -141,8 +148,8 @@
   },
   "base": {
     "source/routing.json": "4e028e602a23fa2658647b6a1af32031c5ad3211",
-    "source/proxy.txt": "f8b5aa3e6f82655a23ef99d9cc42730121009b21",
-    "source/direct.txt": "0cc7eff4012a0bcb338c5769516c4780ffe4eed0",
+    "source/proxy.txt": "b156f5365168fffc5e2e3769484447994d1d9d6f",
+    "source/direct.txt": "820e6a29664e4602c50004df06b7b6e5df0f3e72",
     "source/reject.txt": "222b8238d3daf071a0477bbde8196b3f298a3f83",
     "source/local.txt": "bfe30ff97c3b303dce2e54c8f05a00736e2001da"
   }
