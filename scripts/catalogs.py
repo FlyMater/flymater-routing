@@ -1,6 +1,8 @@
 """Источники наборов. Сетевые запросы выполняются без учётных данных."""
 import json
 import re
+import time
+import urllib.error
 import urllib.request
 from pathlib import PurePosixPath
 from urllib.parse import quote, unquote, urlsplit
@@ -15,9 +17,17 @@ def https(url):
 
 def fetch(url):
     request = urllib.request.Request(https(url), headers={"User-Agent": "FlyMater-Routing"})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        https(response.geturl())
-        data = response.read(64 * 1024 * 1024 + 1)
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                https(response.geturl())
+                data = response.read(64 * 1024 * 1024 + 1)
+            break
+        except urllib.error.HTTPError as exc:
+            if exc.code not in (500, 502, 503, 504) or attempt == 3:
+                raise
+            exc.close()
+            time.sleep(2 ** attempt)
     if len(data) > 64 * 1024 * 1024:
         raise ValueError("Источник превышает 64 МиБ")
     return data
