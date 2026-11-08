@@ -42,7 +42,7 @@ class RoutingTests(unittest.TestCase):
     def test_empty_reproduces_existing_subscriptions(self):
         out, issues = self.build({"catalogs": [], "sets": []})
         self.assertFalse(issues)
-        for path in ["awg/proxy.txt", "shadowrocket/flymater.conf", "throne/flymater.json"]:
+        for path in ["awg/proxy.txt", "shadowrocket/flymater-rounting.conf", "throne/flymater-rounting.json"]:
             self.assertEqual(out[path], (ROOT / path).read_bytes())
 
     def test_failed_rebuild_preserves_published_snapshot(self):
@@ -69,7 +69,7 @@ class RoutingTests(unittest.TestCase):
         outputs = routes()
         self.assertFalse(outputs["awg/proxy.txt"].strip())
         for domain in ("move.example", "new.example"):
-            self.assertIn(f"DOMAIN-SUFFIX,{domain},DIRECT".encode(), outputs["shadowrocket/flymater.conf"])
+            self.assertIn(f"DOMAIN-SUFFIX,{domain},DIRECT".encode(), outputs["shadowrocket/flymater-rounting.conf"])
         self.assertEqual(json.loads(outputs["docs/published-routes.json"])["manualText"], texts)
 
     def test_preview_manual_and_legacy_request(self):
@@ -96,7 +96,7 @@ class RoutingTests(unittest.TestCase):
             self.assertEqual(json.loads(out["docs/published-routes.json"])["config"], self.cfg)
             fetch.assert_called_once()
             self.assertIn(b"198.51.100.0/24", out["awg/proxy.txt"])
-            self.assertIn(b"DOMAIN-SUFFIX,route.example,PROXY", out["shadowrocket/flymater.conf"])
+            self.assertIn(b"DOMAIN-SUFFIX,route.example,PROXY", out["shadowrocket/flymater-rounting.conf"])
             self.assertIn("route.example", str(self.decode(out["singbox/proxy.srs"])))
             rules[0]["domain_suffix"] = ["updated.example"]
             fetch.return_value = self.source(rules)
@@ -106,9 +106,9 @@ class RoutingTests(unittest.TestCase):
             self.assertNotIn(b"198.51.100", out["awg/proxy.txt"])
             self.assertNotIn("updated.example", str(self.decode(out["singbox/proxy.srs"])))
             self.assertIn("updated.example", str(self.decode(out["singbox/direct.srs"])))
-            self.assertIn(b"DOMAIN-SUFFIX,updated.example,DIRECT", out["shadowrocket/flymater.conf"])
-            self.assertNotIn(b"route.example", out["throne/flymater.json"])
-            rule = next(r for r in json.loads(out["throne/flymater.json"])["rules"] if "updated.example" in r.get("domain_suffix", []))
+            self.assertIn(b"DOMAIN-SUFFIX,updated.example,DIRECT", out["shadowrocket/flymater-rounting.conf"])
+            self.assertNotIn(b"route.example", out["throne/flymater-rounting.json"])
+            rule = next(r for r in json.loads(out["throne/flymater-rounting.json"])["rules"] if "updated.example" in r.get("domain_suffix", []))
             self.assertEqual(rule["outbound"], "direct")
 
     def test_exact_only_skips_ndms(self):
@@ -119,7 +119,7 @@ class RoutingTests(unittest.TestCase):
             self.assertEqual(ndms["status"], "не вошёл в подписку")
             self.assertNotIn(b"exact.example", out["awg/proxy.txt"])
             self.assertFalse(issues)
-            self.assertIn(b"DOMAIN,exact.example,PROXY", out["shadowrocket/flymater.conf"])
+            self.assertIn(b"DOMAIN,exact.example,PROXY", out["shadowrocket/flymater-rounting.conf"])
 
     def test_partial_coverage_preserves_constraints(self):
         rules = [{"domain_suffix": ["site.example"], "domain_regex": ["^foo[0-9]+$"]},
@@ -128,13 +128,13 @@ class RoutingTests(unittest.TestCase):
         with patch.object(gen, "fetch", return_value=self.source(rules)):
             outputs = gen.assemble(ROOT, self.cfg, self.work, issues, coverage)
         self.assertFalse(issues)
-        shadow = outputs["shadowrocket/flymater.conf"]
+        shadow = outputs["shadowrocket/flymater-rounting.conf"]
         self.assertIn(b"DOMAIN-SUFFIX,site.example,PROXY", shadow)
         self.assertNotIn(b"limited.example", shadow)
         report = next(r for r in coverage if r["client"] == "shadowrocket")
         self.assertEqual(report["status"], "частично")
         self.assertEqual(set(report["skipped"]), {"domain_regex", "port"})
-        throne = json.loads(outputs["throne/flymater.json"])["rules"]
+        throne = json.loads(outputs["throne/flymater-rounting.json"])["rules"]
         self.assertTrue(any(r.get("domain_regex") == ["^foo[0-9]+$"] for r in throne))
         self.assertTrue(any("limited.example" in r.get("domain", []) and r.get("port") in (443, [443]) for r in throne))
 
