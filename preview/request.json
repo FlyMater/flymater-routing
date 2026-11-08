@@ -1,5 +1,5 @@
 {
-  "id": "c87a34dc-8ddf-4622-9d7a-069686168c75",
+  "id": "ac3b0e6d-7fd2-4929-951e-0a4cbac2fe3d",
   "config": {
     "catalogs": [
       {
@@ -142,12 +142,12 @@
   },
   "manual": {
     "local": "# Локальные доменные исключения\nlocalhost\nlan\nlocal\n",
-    "proxy": "# Домены через VPN — начальный пример, дополните своими списками\nplaud.ai\nposthog.com\nncnodes.com\nnotube.net\npotok.cash\napi.teleos.club\nvdsina.com\ntiktokv.eu\ntiktokglobalshopv.com\nblackbit-exchange.com\nblackbit.exchange\ncrypttex.com\ncloudflare-ech.com\ncashflow.fund\nnnmclub.to\nnnmstatic.win\nrutracker.org\nrutrk.org\nbongacams.com\nrutracker.cc\nmarathonbet.com\nsberkassa.site\n4vps.su\ndbankcloud.ru\natsecret.com\nconverter.app\nerub.site\nforum.ru-board.com\nerub.money\ntronscan.org\napi.revenuecat.com\nassetsconfigcdn.org\nstudio-api-prod.suno.com\napi.segment.io\nmetrics-prod.suno.com\nsuno.com\nsuno.ai\nhcaptcha.com\nd2lwuy8qc234o3.cloudfront.net\nably.net\nfeatureassets.org\nprodregistryv2.org\nrevenuecat.com\nbraze.com\nroyallib.com\nwinance.exchange\nkino.watch",
+    "proxy": "# Домены через VPN — начальный пример, дополните своими списками\nplaud.ai\nposthog.com\nncnodes.com\nnotube.net\npotok.cash\napi.teleos.club\nvdsina.com\ntiktokv.eu\ntiktokglobalshopv.com\nblackbit-exchange.com\nblackbit.exchange\ncrypttex.com\ncloudflare-ech.com\ncashflow.fund\nnnmclub.to\nnnmstatic.win\nrutracker.org\nrutrk.org\nbongacams.com\nrutracker.cc\nmarathonbet.com\nsberkassa.site\n4vps.su\ndbankcloud.ru\natsecret.com\nconverter.app\nerub.site\nforum.ru-board.com\nerub.money\ntronscan.org\napi.revenuecat.com\nassetsconfigcdn.org\nstudio-api-prod.suno.com\napi.segment.io\nmetrics-prod.suno.com\nsuno.com\nsuno.ai\nhcaptcha.com\nd2lwuy8qc234o3.cloudfront.net\nably.net\nfeatureassets.org\nprodregistryv2.org\nrevenuecat.com\nbraze.com\nroyallib.com\nwinance.exchange\nkino.watch\necurrency.org",
     "direct": "# Прямое соединение\nbeget.com\napple.com\nicloud.com\nicloud-content.com\napple-cloudkit.com\napple-livephotoskit.com\napple-dns.net\ncdn-apple.com\nmzstatic.com\nitunes.com\n\n",
     "reject": "# Блокируемые домены (пока пусто)\n"
   },
   "base": {
-    "source/routing.json": "4e028e602a23fa2658647b6a1af32031c5ad3211",
+    "source/routing.json": "f7897d5220cb789592cd61f3da78d39d9e5caa09",
     "source/proxy.txt": "b156f5365168fffc5e2e3769484447994d1d9d6f",
     "source/direct.txt": "820e6a29664e4602c50004df06b7b6e5df0f3e72",
     "source/reject.txt": "222b8238d3daf071a0477bbde8196b3f298a3f83",
