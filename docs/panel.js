@@ -123,6 +123,16 @@ function matches() {
   }
 }
 function selected() {
+  const tags = $("publishedTags");
+  tags.replaceChildren();
+  if (snapshot?.tags) {
+    tags.append(node("h3", "Состав опубликованных подписок"));
+    for (const [client, policies] of Object.entries(snapshot.tags)) {
+      for (const [policy, names] of Object.entries(policies)) {
+        tags.append(node("p", clients[client] + " · " + policy.toUpperCase() + " · " + names.map(name => "#" + name).join(" ")));
+      }
+    }
+  }
   const list = $("selected"); list.replaceChildren();
   if (!config.sets.length) list.append(node("p","Наборы каталогов не выбраны."));
   for (const item of config.sets) {

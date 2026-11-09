@@ -33,26 +33,49 @@ def manual_sources(root):
     return {name: (root / "source" / f"{name}.txt").read_text() for name in ("local", *POLICIES)}
 
 
-def parse_manual(texts):
+def parse_manual(texts, locations=None):
     lists = {}
     seen = {}
     for name in ("local", *POLICIES):
-        values = {}
+        blocks = {}
+        tag = ""
         if not isinstance(texts, dict) or not isinstance(texts.get(name), str):
             raise ValueError(f"{name}.txt: отсутствует текст списка")
-        for line in texts[name].splitlines():
-            value = line.strip().lower()
-            if not value or value.startswith("#"):
+        for number, line in enumerate(texts[name].splitlines(), 1):
+            value = line.strip()
+            if value.startswith("#"):
+                if len(value) > 1 and not value[1].isspace():
+                    tag = value[1:]
                 continue
-            if not HOST.fullmatch(value) or seen.setdefault(value, name) != name:
-                raise ValueError(f"{name}.txt: конфликт или неверный домен {value}")
-            values[value] = True
-        lists[name] = list(values)
+            if not value:
+                continue
+            key = "ip_cidr" if "/" in value else "domain_suffix"
+            try:
+                entry = (key, normalize(key, value))
+            except ValueError as exc:
+                raise ValueError(f"{name}.txt, строка {number}: неверное значение {value}") from exc
+            if entry in seen:
+                if seen[entry] != name:
+                    raise ValueError(f"{name}.txt, строка {number}: конфликт {entry[1]} с {seen[entry]}.txt")
+                continue
+            if locations is not None:
+                locations[entry] = f"{name}.txt, строка {number}"
+            seen[entry] = name
+            blocks.setdefault(tag, []).append(entry)
+        lists[name] = blocks
     return lists
 
 
-def manual(root):
-    return parse_manual(manual_sources(root))
+def flat_manual(lists):
+    return {name: [value for entries in blocks.values() for _, value in entries]
+            for name, blocks in lists.items()}
+
+
+def display_tag(tag):
+    name = re.sub(r"^(?:geosite|geoip)-", "", tag)
+    if name.lower() == "telegram":
+        return "Telegramm"
+    return name[:1].upper() + name[1:]
 
 
 def normalize(key, value):
@@ -137,8 +160,14 @@ def read_set(url, work):
     return obj["rules"]
 
 
-def overlaps(assignments):
+def overlaps(assignments, locations=None):
     """Find conflicts between suffixes and hosts, and between nested CIDRs."""
+    def location(*keys):
+        for key in keys:
+            if locations and key in locations:
+                return locations[key] + ": "
+        return ""
+
     networks = []
     for (key, value), policy in assignments.items():
         if key == "ip_cidr":
@@ -149,35 +178,45 @@ def overlaps(assignments):
                 suffix = ".".join(labels[offset:])
                 other = assignments.get(("domain_suffix", suffix))
                 if other and other != policy:
-                    raise ValueError(f"{value} ({policy}) пересекается с {suffix} ({other})")
+                    prefix = location((key, value), ("domain_suffix", suffix))
+                    raise ValueError(f"{prefix}{value} ({policy}) пересекается с {suffix} ({other})")
     networks.sort(key=lambda pair: (pair[0].version, int(pair[0].network_address), pair[0].prefixlen))
     active = []
     for network, policy in networks:
         while active and (active[-1][0].version != network.version or not network.subnet_of(active[-1][0])):
             active.pop()
         if active and active[-1][1] != policy:
-            raise ValueError(f"{network} ({policy}) пересекается с {active[-1][0]} ({active[-1][1]})")
+            prefix = location(("ip_cidr", str(network)), ("ip_cidr", str(active[-1][0])))
+            raise ValueError(f"{prefix}{network} ({policy}) пересекается с {active[-1][0]} ({active[-1][1]})")
         active.append((network, policy))
 
 
 def assemble(root, cfg, work, issues, coverage=None, manual_text=None):
     texts = manual_sources(root) if manual_text is None else manual_text
-    lists = parse_manual(texts)
+    locations = {}
+    lists = parse_manual(texts, locations)
     paths = [https(item["url"]) for item in cfg["catalogs"]]
     if len(set(paths)) != len(paths):
         raise ValueError("Каталог указан дважды")
     indexes, sources = {}, {}
-    groups = {c: {p: [] for p in POLICIES} for c in CLIENTS}
+    groups = {client: {name: {} for name in lists} for client in CLIENTS}
     assignments = {c: {} for c in CLIENTS}
-    for name, domains in lists.items():
+    native = {policy: [] for policy in POLICIES}
+    for name, blocks in lists.items():
         policy = "direct" if name == "local" else name
-        for client in CLIENTS:
-            assignments[client].update({("domain_suffix", d): policy for d in domains})
-        if domains:
-            groups["singbox"][policy].append({"domain_suffix": domains})
+        for tag, entries in blocks.items():
+            fields = {}
+            for key, value in entries:
+                fields.setdefault(key, []).append(value)
+            native[policy].append(fields)
+            for client in CLIENTS:
+                if client == "ndms" and policy != "proxy":
+                    continue
+                assignments[client].update(dict.fromkeys(entries, policy))
+                groups[client][name][tag] = entries.copy()
     for item in cfg["sets"]:
         policy, tag, url = item["policy"], item["tag"], https(item["url"])
-        if policy not in POLICIES or not tag.strip() or any(c not in CLIENTS for c in item["exclude"]):
+        if policy not in POLICIES or not tag.strip() or tag.splitlines() != [tag] or any(c not in CLIENTS for c in item["exclude"]):
             raise ValueError(f"Неверное назначение {tag}")
         origin = item.get("catalog")
         if origin:
@@ -200,7 +239,7 @@ def assemble(root, cfg, work, issues, coverage=None, manual_text=None):
                 skipped = set()
                 entries = [entry for rule in rules for entry in project(rule, client, skipped)]
                 if client == "singbox":
-                    groups[client][policy].extend(rules)
+                    native[policy].extend(rules)
                     entries.extend(("native", json.dumps(r, sort_keys=True)) for r in rules)
                     skipped.clear()
                 if coverage is not None:
@@ -208,54 +247,65 @@ def assemble(root, cfg, work, issues, coverage=None, manual_text=None):
                     if entries and skipped:
                         status = "частично"
                     coverage.append({"tag": tag, "client": client, "status": status, "skipped": sorted(skipped)})
+                label = display_tag(tag)
+                if client == "singbox" and rules:
+                    groups[client][policy].setdefault(label, [])
                 for key in entries:
+                    known = key in assignments[client]
                     previous = assignments[client].setdefault(key, policy)
                     if previous != policy:
-                        raise ValueError(f"{key[1]} назначен в {previous} и {policy}")
-                    if client != "singbox":
-                        groups[client][policy].append(key)
+                        where = locations[key] + ": " if key in locations else ""
+                        raise ValueError(f"{where}{key[1]} назначен в {previous} и {policy}")
+                    if client != "singbox" and not known:
+                        groups[client][policy].setdefault(label, []).append(key)
             except ValueError as exc:
                 issues.append(f"{tag} · {client}: {exc}")
     for client, entries in assignments.items():
         try:
-            overlaps(entries)
+            overlaps(entries, locations)
         except ValueError as exc:
             issues.append(f"{client}: {exc}")
     if issues:
         return {}
     outputs = {}
-    for policy, rules in groups["singbox"].items():
+    for policy, rules in native.items():
         source, out = work / "output.json", work / "output.srs"
         source.write_bytes(document({"version": 3, "rules": rules}))
         codec("rule-set", "compile", str(source), "-o", str(out))
         outputs[f"singbox/{policy}.srs"] = out.read_bytes()
-    ndms = dict.fromkeys(lists["proxy"] + [v for _, v in groups["ndms"]["proxy"]])
+    ndms = dict.fromkeys(v for entries in groups["ndms"]["proxy"].values() for _, v in entries)
     outputs["awg/proxy.txt"] = ("\n".join(ndms) + "\n").encode()
     sh = ["# FlyMater Routing — generated, do not edit", "[General]", "bypass-system = true", "", "[Rule]"]
     throne = []
     for family, networks in [(4, PRIVATE[:5]), (6, PRIVATE[5:])]:
         throne.append({"name": f"LOCAL: private IPv{family}", "type": "custom", "action": "route", "outbound": "direct", "ip_cidr": networks})
         sh.extend(f"IP-CIDR{'6' if family == 6 else ''},{v},DIRECT,no-resolve" for v in networks)
-    for name, domains in lists.items():
+    for name in lists:
         policy = "direct" if name == "local" else name
-        base = [("domain_suffix", d) for d in domains]
-        for client in ("shadowrocket", "throne"):
-            extra = [] if name == "local" else groups[client][policy]
+        for tag, entries in groups["shadowrocket"][name].items():
+            sh.extend(["", "#" + (tag or name.upper())])
+            for key, value in entries:
+                kind = {"domain": "DOMAIN", "domain_keyword": "DOMAIN-KEYWORD", "domain_suffix": "DOMAIN-SUFFIX",
+                        "ip_cidr": "IP-CIDR6" if ":" in value else "IP-CIDR"}[key]
+                sh.append(f"{kind},{value},{policy.upper()}" + (",no-resolve" if key == "ip_cidr" else ""))
+        for tag, entries in groups["throne"][name].items():
+            route = {"name": "#" + (tag or name.upper()), "type": "custom", "action": "route",
+                     "outbound": "block" if policy == "reject" else policy}
             fields = {}
-            for key, value in dict.fromkeys(base + extra):
+            for key, value in entries:
                 if key == "compound":
-                    throne.append({"name": f"FlyMater {name.upper()}", "type": "custom", "action": "route",
-                                   "outbound": "block" if policy == "reject" else policy, **json.loads(value)})
-                    continue
-                fields.setdefault(key, []).append(value)
-                if client == "shadowrocket":
-                    kind = {"domain": "DOMAIN", "domain_keyword": "DOMAIN-KEYWORD", "domain_suffix": "DOMAIN-SUFFIX", "ip_cidr": "IP-CIDR6" if ":" in value else "IP-CIDR"}[key]
-                    sh.append(f"{kind},{value},{policy.upper()}" + (",no-resolve" if key == "ip_cidr" else ""))
-            if client == "throne" and fields:
-                throne.append({"name": f"FlyMater {name.upper()}", "type": "custom", "action": "route", "outbound": "block" if policy == "reject" else policy, **fields})
+                    throne.append({**route, **json.loads(value)})
+                else:
+                    fields.setdefault(key, []).append(value)
+            if fields:
+                throne.append({**route, **fields})
     outputs["shadowrocket/flymater-rounting.conf"] = ("\n".join(sh + ["FINAL,DIRECT"]) + "\n").encode()
     outputs["throne/flymater-rounting.json"] = document({"kind": "throne-route-profile", "v": 1, "name": "FlyMater Routing", "default_outbound": "direct", "rules": throne})
-    outputs["docs/published-routes.json"] = document({"config": cfg, "manual": lists, "manualText": texts})
+    outputs["docs/published-routes.json"] = document({
+        "config": cfg, "manual": flat_manual(lists), "manualText": texts,
+        "tags": {client: {name: [tag or name.upper() for tag in blocks] for name, blocks in grouped.items() if blocks}
+                 for client, grouped in groups.items()},
+    })
     return outputs
 
 
