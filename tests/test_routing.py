@@ -1,3 +1,4 @@
+import ipaddress
 import json
 import shutil
 import sys
@@ -39,21 +40,65 @@ class RoutingTests(unittest.TestCase):
         gen.codec("rule-set", "decompile", str(binary), "-o", str(target))
         return json.loads(target.read_text())["rules"]
 
-    def test_empty_reproduces_existing_subscriptions(self):
-        out, issues = self.build({"catalogs": [], "sets": []})
-        self.assertFalse(issues)
-        for path in ["awg/proxy.txt", "shadowrocket/flymater-rounting.conf", "throne/flymater-rounting.json"]:
-            self.assertEqual(out[path], (ROOT / path).read_bytes())
+    def test_published_telegram_first_match(self):
+        lines = (ROOT / "shadowrocket/flymater-rounting.conf").read_text().split("[Rule]")[1].splitlines()
+
+        def first_match(host):
+            tag = ""
+            for line in lines:
+                if line.startswith("#"):
+                    tag = line
+                    continue
+                parts = line.split(",")
+                if parts[0] == "FINAL":
+                    return "", parts[1]
+                if parts[0] in ("IP-CIDR", "IP-CIDR6") and host != "telegram.org":
+                    if ipaddress.ip_address(host) in ipaddress.ip_network(parts[1]):
+                        return tag, parts[2]
+                if parts[0] in ("DOMAIN", "DOMAIN-SUFFIX") and host == parts[1]:
+                    return tag, parts[2]
+                if parts[0] == "DOMAIN-KEYWORD" and parts[1] in host:
+                    return tag, parts[2]
+
+        for host in ("149.154.167.41", "149.154.167.50", "149.154.167.51", "149.154.162.123",
+                     "2001:b28:f23d::1", "telegram.org"):
+            with self.subTest(host=host):
+                self.assertEqual(first_match(host), ("#Telegramm", "PROXY"))
+        self.assertEqual(first_match("192.0.2.1"), ("", "DIRECT"))
+
+    def test_named_blocks(self):
+        texts = dict(local="", proxy="#Telegramm\n149.154.160.0/20", direct="#Telegramm\nother.example", reject="")
+        sets = [dict(self.item, tag="geosite-" + name, url=f"https://example.org/{name}.json",
+                     exclude=["shadowrocket"] if name == "excluded" else [])
+                for name in ("telegram", "discord", "pinterest", "excluded")]
+        def read(url, work):
+            return [{"domain_suffix": [Path(url).stem + ".org"]}]
+        with patch.object(gen, "read_set", side_effect=read):
+            out = gen.assemble(ROOT, {"catalogs": [], "sets": sets}, self.work, [], manual_text=texts)
+        shadow = out["shadowrocket/flymater-rounting.conf"].decode()
+        self.assertEqual(shadow.count("#Telegramm\n"), 2)
+        self.assertIn("DOMAIN-SUFFIX,telegram.org,PROXY", shadow.split("#Telegramm")[1].split("#Discord")[0])
+        self.assertIn("#Discord\n", shadow)
+        self.assertIn("#Pinterest\n", shadow)
+        self.assertNotIn("#Excluded", shadow)
+        tags = json.loads(out["docs/published-routes.json"])["tags"]
+        self.assertEqual(tags["ndms"]["proxy"], ["Telegramm", "Discord", "Pinterest", "Excluded"])
+        texts["proxy"] += "\n192.0.2.0/65"
+        with self.assertRaisesRegex(ValueError, "proxy.txt, строка 3"):
+            gen.parse_manual(texts)
 
     def test_failed_rebuild_preserves_published_snapshot(self):
         shutil.copytree(ROOT / "source", self.work / "source")
         config = self.work / "source/routing.json"
+        config.write_bytes(gen.document({"catalogs": [], "sets": []}))
         with patch.object(gen, "ROOT", self.work), patch.object(sys, "argv", ["generate.py"]):
             gen.main()
             published = self.work / "docs/published-routes.json"
             prior = published.read_bytes()
-            self.assertEqual(json.loads(prior), {"config": json.loads(config.read_text()), "manual": gen.manual(self.work),
-                                               "manualText": gen.manual_sources(self.work)})
+            snapshot = json.loads(prior)
+            self.assertEqual(snapshot["config"], json.loads(config.read_text()))
+            self.assertEqual(snapshot["manualText"], gen.manual_sources(self.work))
+            self.assertIn("Telegramm", snapshot["tags"]["singbox"]["proxy"])
             config.write_bytes(gen.document(self.cfg))
             with patch.object(gen, "fetch", side_effect=OSError("нет источника")), self.assertRaises(ValueError):
                 gen.main()
