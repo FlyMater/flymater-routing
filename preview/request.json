@@ -1,5 +1,5 @@
 {
-  "id": "ac3b0e6d-7fd2-4929-951e-0a4cbac2fe3d",
+  "id": "be3e706a-396e-4997-b13b-fb8e59061324",
   "config": {
     "catalogs": [
       {
@@ -142,13 +142,13 @@
   },
   "manual": {
     "local": "# Локальные доменные исключения\nlocalhost\nlan\nlocal\n",
-    "proxy": "# Домены через VPN — начальный пример, дополните своими списками\nplaud.ai\nposthog.com\nncnodes.com\nnotube.net\npotok.cash\napi.teleos.club\nvdsina.com\ntiktokv.eu\ntiktokglobalshopv.com\nblackbit-exchange.com\nblackbit.exchange\ncrypttex.com\ncloudflare-ech.com\ncashflow.fund\nnnmclub.to\nnnmstatic.win\nrutracker.org\nrutrk.org\nbongacams.com\nrutracker.cc\nmarathonbet.com\nsberkassa.site\n4vps.su\ndbankcloud.ru\natsecret.com\nconverter.app\nerub.site\nforum.ru-board.com\nerub.money\ntronscan.org\napi.revenuecat.com\nassetsconfigcdn.org\nstudio-api-prod.suno.com\napi.segment.io\nmetrics-prod.suno.com\nsuno.com\nsuno.ai\nhcaptcha.com\nd2lwuy8qc234o3.cloudfront.net\nably.net\nfeatureassets.org\nprodregistryv2.org\nrevenuecat.com\nbraze.com\nroyallib.com\nwinance.exchange\nkino.watch\necurrency.org",
+    "proxy": "# Домены через VPN — начальный пример, дополните своими списками\nplaud.ai\nposthog.com\nncnodes.com\nnotube.net\npotok.cash\napi.teleos.club\nvdsina.com\ntiktokv.eu\ntiktokglobalshopv.com\nblackbit-exchange.com\nblackbit.exchange\ncrypttex.com\ncloudflare-ech.com\ncashflow.fund\nnnmclub.to\nnnmstatic.win\nrutracker.org\nrutrk.org\nbongacams.com\nrutracker.cc\nmarathonbet.com\nsberkassa.site\n4vps.su\ndbankcloud.ru\natsecret.com\nconverter.app\nerub.site\nforum.ru-board.com\nerub.money\ntronscan.org\napi.revenuecat.com\nassetsconfigcdn.org\nstudio-api-prod.suno.com\napi.segment.io\nmetrics-prod.suno.com\nsuno.com\nsuno.ai\nhcaptcha.com\nd2lwuy8qc234o3.cloudfront.net\nably.net\nfeatureassets.org\nprodregistryv2.org\nrevenuecat.com\nbraze.com\nroyallib.com\nwinance.exchange\nkino.watch\necurrency.org\n\n#Telegramm\n91.108.4.0/22\n91.108.8.0/22\n91.108.12.0/22\n91.108.16.0/22\n91.108.56.0/22\n109.239.140.0/24\n149.154.160.0/20\n2001:b28:f23d::/48\n2001:b28:f23f::/48\n2001:67c:4e8::/48\n",
     "direct": "# Прямое соединение\nbeget.com\napple.com\nicloud.com\nicloud-content.com\napple-cloudkit.com\napple-livephotoskit.com\napple-dns.net\ncdn-apple.com\nmzstatic.com\nitunes.com\n\n",
     "reject": "# Блокируемые домены (пока пусто)\n"
   },
   "base": {
     "source/routing.json": "f7897d5220cb789592cd61f3da78d39d9e5caa09",
-    "source/proxy.txt": "b156f5365168fffc5e2e3769484447994d1d9d6f",
+    "source/proxy.txt": "2924647ad35e73afc73847ad420942f103e9499f",
     "source/direct.txt": "820e6a29664e4602c50004df06b7b6e5df0f3e72",
     "source/reject.txt": "222b8238d3daf071a0477bbde8196b3f298a3f83",
     "source/local.txt": "bfe30ff97c3b303dce2e54c8f05a00736e2001da"
