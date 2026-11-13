@@ -54,3 +54,5 @@ header strong, header a { flex-shrink: 0; }
   header h1 { flex: 1; }
   header a { font-size: .9rem; }
 }
+
+.column-controls { display: flex; flex-direction: column; flex: 1; min-height: 0; }
