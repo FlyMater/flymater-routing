@@ -61,3 +61,6 @@ ecurrency.org
 2001:67c:4e8::/48
 merkandi.com
 bstock.com
+calmfox.net
+onesignal.com
+merstatic.com
