@@ -2,17 +2,27 @@
 <html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FlyMater · Маршрутизация</title>
 <link rel="stylesheet" href="panel.css">
-<header><strong>FlyMater</strong><span>Маршрутизация</span><a id="repo">Репозиторий ↗</a></header>
-<main><h1>Каталог маршрутизации</h1>
+<header><strong>FlyMater</strong><h1>Каталог маршрутизации</h1><a id="repo">Репозиторий ↗</a></header>
+<main>
 <p id="status" role="status">Загрузка настроек…</p>
 <fieldset id="editor" disabled>
 <div class="catalog-columns">
-<section><h2>Доступные наборы</h2><div class="row"><select aria-label="Каталог" id="catalog"></select><button id="refresh">Обновить каталог</button></div>
-<details><summary>Добавить каталог</summary><form id="addCatalog"><label>Название<input id="catalogName" required></label><label>Папка GitHub или JSON-индекс<input id="catalogUrl" type="url" required></label><button>Добавить</button></form></details>
+<section class="catalog-column" aria-labelledby="available-title"><div class="column-heading"><h2 id="available-title">Доступные наборы</h2><div class="row"><select aria-label="Каталог" id="catalog"></select><button id="refresh">Обновить каталог</button></div>
 <label>Поиск по названию, описанию или тегу<input type="search" id="query" placeholder="Например, Телеграм"></label>
+</div><div class="column-body" tabindex="0" aria-label="Содержимое доступных наборов"><details><summary>Добавить каталог</summary><form id="addCatalog"><label>Название<input id="catalogName" required></label><label>Папка GitHub или JSON-индекс<input id="catalogUrl" type="url" required></label><button>Добавить</button></form></details>
 <p id="catalogState" role="status"></p><div id="matches"></div>
-<details><summary>Добавить набор по ссылке</summary><form id="addSet"><label>Тег<input id="tag" required></label><label>URL набора<input type="url" id="setUrl" required></label><button>Добавить</button></form></details></section>
-<section><h2>Выбрано</h2><select id="routeView" aria-label="Версия маршрутов" hidden></select><div id="selected"></div><div id="publishedTags"></div><h3>Ручные правила</h3><p>По одному домену или IPv4/IPv6-подсети в строке, например 149.154.160.0/20. Строка #Telegramm начинает набор, строка с «# » — комментарий.</p><div id="manual"></div></section>
+<details><summary>Добавить набор по ссылке</summary><form id="addSet"><label>Тег<input id="tag" required></label><label>URL набора<input type="url" id="setUrl" required></label><button>Добавить</button></form></details></div></section>
+<section class="catalog-column" aria-labelledby="selected-title">
+<div class="column-heading"><h2 id="selected-title">Выбрано</h2><select id="routeView" aria-label="Версия маршрутов" hidden></select>
+<div class="tabs" role="tablist" aria-label="Выбранные правила">
+<button type="button" role="tab" id="tab-sets" aria-controls="panel-sets" aria-selected="true">Наборы</button>
+<button type="button" role="tab" id="tab-proxy" aria-controls="panel-proxy" aria-selected="false" tabindex="-1">PROXY</button>
+<button type="button" role="tab" id="tab-direct" aria-controls="panel-direct" aria-selected="false" tabindex="-1">DIRECT</button>
+<button type="button" role="tab" id="tab-reject" aria-controls="panel-reject" aria-selected="false" tabindex="-1">REJECT</button>
+<button type="button" role="tab" id="tab-local" aria-controls="panel-local" aria-selected="false" tabindex="-1">LOCAL</button>
+</div></div>
+<div class="column-body"><div id="panel-sets" role="tabpanel" aria-labelledby="tab-sets" tabindex="0"><div id="selected"></div><div id="publishedTags"></div></div><div id="manual"></div></div>
+</section>
 </div>
 <section><h2>Проверка и публикация</h2><label>GitHub-токен для этого репозитория<input id="token" type="password" autocomplete="off" spellcheck="false"></label>
 <div class="row"><button id="check">Проверить черновик</button><button id="publish" disabled>Опубликовать</button></div>
