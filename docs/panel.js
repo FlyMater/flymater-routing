@@ -17,6 +17,7 @@ let activeTab = "sets";
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 function activateTab(name) {
   activeTab = name;
+  $("editor").hidden = name === "publication";
   for (const tab of tabs) {
     const selected = tab.id === `tab-${name}`;
     tab.setAttribute("aria-selected", String(selected));
