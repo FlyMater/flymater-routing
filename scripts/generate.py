@@ -95,6 +95,21 @@ THRONE_FILTERS = {"port", "port_range", "source_port", "source_port_range", "sou
                   "network", "wifi_ssid", "wifi_bssid", "invert"}
 
 
+def sort_rule_values(rule):
+    """Sort destination alternatives without changing rule order or constraints."""
+    return {key: sorted(value, key=str.casefold) if key in DESTINATIONS and isinstance(value, list)
+            else [sort_rule_values(child) for child in value] if key == "rules"
+            else value for key, value in rule.items()}
+
+
+def sort_entries(entries):
+    # Compound rules retain their positions; their destination arrays are sorted
+    # separately when serialized to Throne.
+    ordered = iter(sorted((entry for entry in entries if entry[0] != "compound"),
+                          key=lambda entry: entry[1].casefold()))
+    return [entry if entry[0] == "compound" else next(ordered) for entry in entries]
+
+
 def project(rule, client, skipped):
     if rule.get("type") == "logical" and rule.get("mode") == "or" and not rule.get("invert"):
         return [entry for child in rule["rules"] for entry in project(child, client, skipped)]
@@ -267,10 +282,14 @@ def assemble(root, cfg, work, issues, coverage=None, manual_text=None):
             issues.append(f"{client}: {exc}")
     if issues:
         return {}
+    for grouped in groups.values():
+        for blocks in grouped.values():
+            for tag, entries in blocks.items():
+                blocks[tag] = sort_entries(entries)
     outputs = {}
     for policy, rules in native.items():
         source, out = work / "output.json", work / "output.srs"
-        source.write_bytes(document({"version": 3, "rules": rules}))
+        source.write_bytes(document({"version": 3, "rules": [sort_rule_values(rule) for rule in rules]}))
         codec("rule-set", "compile", str(source), "-o", str(out))
         outputs[f"singbox/{policy}.srs"] = out.read_bytes()
     ndms = dict.fromkeys(v for entries in groups["ndms"]["proxy"].values() for _, v in entries)
@@ -294,7 +313,7 @@ def assemble(root, cfg, work, issues, coverage=None, manual_text=None):
             fields = {}
             for key, value in entries:
                 if key == "compound":
-                    throne.append({**route, **json.loads(value)})
+                    throne.append(sort_rule_values({**route, **json.loads(value)}))
                 else:
                     fields.setdefault(key, []).append(value)
             if fields:

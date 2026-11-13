@@ -104,6 +104,71 @@ class RoutingTests(unittest.TestCase):
                 gen.main()
             self.assertEqual(published.read_bytes(), prior)
 
+    def test_entries_sorted_within_tags(self):
+        texts = dict(local="", proxy="#Zulu\nz.example\n10.2.0.0/16\n10.10.0.0/16\na.example\n"
+                     "#Alpha\ny.example\nb.example\n", direct="", reject="")
+        sets = [dict(self.item, tag="geosite-zulu")]
+        rules = [{"domain_suffix": ["x.example", "c.example"], "domain_keyword": ["Zoom", "apple"]}]
+        with patch.object(gen, "read_set", return_value=rules):
+            out = gen.assemble(ROOT, {"catalogs": [], "sets": sets}, self.work, [], manual_text=texts)
+        self.assertEqual(out["awg/proxy.txt"].decode().splitlines(),
+                         ["10.10.0.0/16", "10.2.0.0/16", "a.example", "c.example", "x.example", "z.example",
+                          "b.example", "y.example"])
+        shadow = out["shadowrocket/flymater-rounting.conf"].decode()
+        zulu, alpha = shadow.split("#Zulu\n")[1].split("#Alpha\n")
+        self.assertEqual([line.split(",")[1] for line in zulu.splitlines() if line],
+                         ["10.10.0.0/16", "10.2.0.0/16", "a.example", "apple", "c.example",
+                          "x.example", "z.example", "Zoom"])
+        self.assertLess(alpha.index("b.example"), alpha.index("y.example"))
+        throne = json.loads(out["throne/flymater-rounting.json"])["rules"]
+        tagged = [rule for rule in throne if rule["name"] in ("#Zulu", "#Alpha")]
+        self.assertEqual([rule["name"] for rule in tagged], ["#Zulu", "#Alpha"])
+        self.assertEqual(tagged[0]["domain_suffix"], ["a.example", "c.example", "x.example", "z.example"])
+        self.assertEqual(tagged[0]["ip_cidr"], ["10.10.0.0/16", "10.2.0.0/16"])
+        self.assertEqual(tagged[0]["domain_keyword"], ["apple", "Zoom"])
+        snapshot = json.loads(out["docs/published-routes.json"])
+        self.assertEqual(snapshot["tags"]["shadowrocket"]["proxy"], ["Zulu", "Alpha"])
+        self.assertEqual(snapshot["manualText"], texts)
+
+    def test_native_and_compound_destination_sorting(self):
+        texts = dict.fromkeys(("local", *gen.POLICIES), "")
+        rules = [{"type": "logical", "mode": "or", "rules": [
+            {"domain_suffix": ["z.example", "a.example"], "port": [8443, 443]},
+            {"domain_keyword": ["Zoom", "apple"], "ip_cidr": ["10.2.0.0/16", "10.10.0.0/16"]},
+        ]}]
+        original = json.loads(json.dumps(rules))
+        compiled = []
+        codec = gen.codec
+        def capture(*args):
+            if args[:2] == ("rule-set", "compile"):
+                compiled.append(json.loads(Path(args[2]).read_text()))
+            return codec(*args)
+        with patch.object(gen, "read_set", return_value=rules), patch.object(gen, "codec", side_effect=capture):
+            out = gen.assemble(ROOT, self.cfg, self.work, [], manual_text=texts)
+        self.assertEqual(compiled[0]["rules"][0]["rules"][1]["ip_cidr"], ["10.10.0.0/16", "10.2.0.0/16"])
+        native = self.decode(out["singbox/proxy.srs"])
+        children = native[0]["rules"]
+        self.assertEqual(children[0]["domain_suffix"], ["a.example", "z.example"])
+        self.assertEqual(children[0]["port"], [8443, 443])
+        self.assertEqual(children[1]["domain_keyword"], ["apple", "Zoom"])
+        # The SRS codec stores networks in its own numeric order.
+        self.assertCountEqual(children[1]["ip_cidr"], ["10.10.0.0/16", "10.2.0.0/16"])
+        throne = json.loads(out["throne/flymater-rounting.json"])["rules"]
+        compound = next(rule for rule in throne if "port" in rule)
+        self.assertEqual(compound["domain_suffix"], ["a.example", "z.example"])
+        self.assertEqual(compound["port"], [8443, 443])
+        self.assertEqual(rules, original)
+
+    def test_manual_sources_sorted_within_blocks(self):
+        for path in (ROOT / "source").glob("*.txt"):
+            values = []
+            for line in [*path.read_text().splitlines(), "#End"]:
+                if line.startswith("#") and len(line) > 1 and not line[1].isspace():
+                    self.assertEqual(values, sorted(values, key=str.casefold), str(path))
+                    values = []
+                elif line.strip() and not line.startswith("#"):
+                    values.append(line)
+
     def test_manual_move_add_and_clear(self):
         texts = dict(local="", proxy="move.example", direct="", reject="")
         cfg = {"sets": [], "catalogs": []}
