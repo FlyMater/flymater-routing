@@ -20,12 +20,16 @@
 <button type="button" role="tab" id="tab-direct" aria-controls="panel-direct" aria-selected="false" tabindex="-1">DIRECT</button>
 <button type="button" role="tab" id="tab-reject" aria-controls="panel-reject" aria-selected="false" tabindex="-1">REJECT</button>
 <button type="button" role="tab" id="tab-local" aria-controls="panel-local" aria-selected="false" tabindex="-1">LOCAL</button>
+<button type="button" role="tab" id="tab-publication" aria-controls="panel-publication" aria-selected="false" tabindex="-1">Публикация</button>
 </div></div>
-<div class="column-body"><div id="panel-sets" role="tabpanel" aria-labelledby="tab-sets" tabindex="0"><div id="selected"></div><div id="publishedTags"></div></div><div id="manual"></div></div>
-</section>
-</div>
+<div class="column-body"><div id="panel-sets" role="tabpanel" aria-labelledby="tab-sets" tabindex="0"><div id="selected"></div><div id="publishedTags"></div></div><div id="manual"></div>
+<div id="panel-publication" role="tabpanel" aria-labelledby="tab-publication" tabindex="0" hidden>
 <section><h2>Проверка и публикация</h2><label>GitHub-токен для этого репозитория<input id="token" type="password" autocomplete="off" spellcheck="false"></label>
 <div class="row"><button id="check">Проверить черновик</button><button id="publish" disabled>Опубликовать</button></div>
-<p id="report" role="status"></p></section></fieldset>
+<p id="report" role="status"></p></section>
 <section><h2>Сборка подписок</h2><p id="build" role="status"></p></section>
+</div></div>
+</section>
+</div>
+</fieldset>
 </main><script type="module" src="panel.js"></script></html>
