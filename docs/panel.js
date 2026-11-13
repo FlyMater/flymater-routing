@@ -62,9 +62,28 @@ let entries = [], catalogRequest = 0;
 function view(data, manual, id, base = baseline(sources)) {
   return {config:structuredClone(data), manual:{...manual}, base, id, verified:false, report:""};
 }
+let editingBusy = true;
+function editorDisabled(disabled) {
+  editingBusy = disabled;
+  $("editor").disabled = disabled;
+  $("catalogEditor").disabled = disabled;
+  $("routeView").disabled = disabled;
+  $("token").disabled = disabled && !!active;
+  if (disabled) {
+    $("check").disabled = true;
+    $("publish").disabled = true;
+  } else {
+    controls();
+  }
+}
 function controls() {
-  $("check").disabled = !onPages;
-  $("publish").disabled = !onPages || !sources || !active.verified || active.id !== latestId;
+  if (!active) {
+    $("check").disabled = true;
+    $("publish").disabled = true;
+    return;
+  }
+  $("check").disabled = !onPages || editingBusy;
+  $("publish").disabled = !onPages || editingBusy || !sources || !active.verified || active.id !== latestId;
   $("report").textContent = active.report;
   if (!onPages) {
     const pages = node("a", "Открыть панель на GitHub Pages");
@@ -105,6 +124,12 @@ async function json(url, options = {}) {
     error.status = response.status;
     error.rateLimited = response.headers.get("x-ratelimit-remaining") === "0" ||
       response.headers.has("retry-after") || /rate limit/i.test(detail?.message || "");
+    if (error.rateLimited || error.status === 429) {
+      const reset = Number(response.headers.get("x-ratelimit-reset")) * 1000;
+      const retry = Number(response.headers.get("retry-after")) * 1000 + Date.now();
+      error.retryAt = Math.max(reset || 0, retry || 0);
+      error.message = "Достигнут лимит запросов GitHub. Откройте вкладку «Публикация», введите токен и повторите загрузку.";
+    }
     throw error;
   }
   return response.json();
@@ -255,7 +280,9 @@ async function loadCatalog(id, url) {
     const m = u.pathname.replace(/\/$/,"").match(/^\/([\w.-]+)\/([\w.-]+)\/tree\/([^/]+)(?:\/(.*))?$/);
     if (!m) throw Error("Выберите папку GitHub в конкретной ветке");
     const [,org,repoName,ref,dir] = m, prefix = dir ? decodeURIComponent(dir)+"/" : "";
-    const tree = await json(`https://api.github.com/repos/${org}/${repoName}/git/trees/${ref}?recursive=1`);
+    const token = $("token").value.trim();
+    const headers = token ? {Authorization:`Bearer ${token}`} : {};
+    const tree = await json(`https://api.github.com/repos/${org}/${repoName}/git/trees/${ref}?recursive=1`, {headers});
     if (tree.truncated) throw Error("GitHub вернул неполный каталог");
     rows = tree.tree.filter(e => e.type==="blob" && e.path.startsWith(prefix) && /\.(srs|json)$/.test(e.path)).map(e => ({
       tag:e.path.slice(prefix.length).replace(/\.(srs|json)$/,""),
@@ -289,12 +316,18 @@ async function loadCatalog(id, url) {
   if (missing.length) { throw Error("Наборы исчезли или сменили URL: "+missing.map(s=>s.tag).join(", ")); }
 }
 async function run(fn, report = $("status")) {
-  try {await fn();} catch (e) {report.textContent = e.message;}
+  try {await fn();} catch (e) {
+    report.textContent = e.rateLimited || e.status === 429
+      ? "Достигнут лимит запросов GitHub. Откройте вкладку «Публикация», введите токен и повторите загрузку."
+      : e.message;
+  }
 }
-let buildRequest = 0;
-async function buildStatus() {
+let buildRequest = 0, nextBuildCheck = 0;
+async function buildStatus(force = false) {
+  if (!force && Date.now() < nextBuildCheck) return;
   const request = ++buildRequest;
   const token = $("token").value.trim();
+  nextBuildCheck = Date.now() + (token ? 60000 : 300000);
   const headers = token ? {Authorization:`Bearer ${token}`} : {};
   let data;
   try {
@@ -304,6 +337,7 @@ async function buildStatus() {
     if (request !== buildRequest) return;
     let message = error.message;
     if (error.rateLimited || error.status === 429) {
+      nextBuildCheck = Math.max(nextBuildCheck, error.retryAt || 0, Date.now() + 300000);
       message = token ? "Достигнут лимит запросов GitHub. Статус обновится позже." :
         "Достигнут лимит запросов GitHub. Введите токен для просмотра статуса или повторите позже.";
     } else if (error.status === 403) {
@@ -330,12 +364,27 @@ async function buildStatus() {
   const labels = {success:"успешно",failure:"ошибка",in_progress:"выполняется",queued:"в очереди",cancelled:"отменена"};
   $("build").replaceChildren(link," · "+(labels[run.conclusion || run.status] || run.status)+" · "+new Date(run.created_at).toLocaleString("ru"));
 }
-async function read(path) {
-  if (onPages) return file(path);
-  if (path.endsWith(".json")) return {data:await json("../" + path)};
-  const response = await fetch("../" + path, {cache:"no-store"});
-  if (!response.ok) throw Error(path + " · HTTP " + response.status);
-  return {data:await response.text()};
+async function read(path, ref = branch) {
+  // Public reads do not consume the GitHub API quota. Keep Git blob hashes
+  // compatible with the authenticated conflict checks used during publication.
+  const url = onPages ? `https://raw.githubusercontent.com/${repo}/${ref}/${path}` : "../" + path;
+  const response = await fetch(url, {cache:"no-store"});
+  if (!response.ok) {
+    const error = Error(path + " · HTTP " + response.status);
+    error.status = response.status;
+    throw error;
+  }
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  let sha;
+  if (onPages) {
+    const header = new TextEncoder().encode(`blob ${bytes.length}\0`);
+    const blob = new Uint8Array(header.length + bytes.length);
+    blob.set(header); blob.set(bytes, header.length);
+    const hash = await crypto.subtle.digest("SHA-1", blob);
+    sha = Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2,"0")).join("");
+  }
+  const text = new TextDecoder().decode(bytes);
+  return {sha, data:path.endsWith(".json") ? JSON.parse(text) : text};
 }
 async function observe(id) {
   const update = (report, verified = false) => {
@@ -369,7 +418,7 @@ async function observe(id) {
 $("check").onclick = () => run(async () => {
   if (!$("token").value.trim()) throw Error("Введите GitHub-токен для проверки черновика.");
   const state = active, draft = structuredClone(config), id = crypto.randomUUID();
-  $("editor").disabled = true;
+  editorDisabled(true);
   try {
     const base = baseline(sources);
     if (sourcePaths.some(path => state.base[path] !== base[path]) &&
@@ -384,12 +433,12 @@ $("check").onclick = () => run(async () => {
     views.draft = state === views.draft ? state : view(draft,state.manual,id,state.base);
     options();
     void observe(id);
-  } finally { $("editor").disabled = false; controls(); }
+  } finally { editorDisabled(false); }
 }, $("report"));
 const sourcePaths = [configPath, ...names.map(name => `source/${name}.txt`)];
 async function loadSources(ref) {
   const pairs = await Promise.all(sourcePaths.map(async path =>
-    [path, onPages ? await file(path, ref) : await read(path)]));
+    [path, onPages && ref ? await file(path, ref) : await read(path)]));
   return Object.fromEntries(pairs);
 }
 
@@ -430,16 +479,16 @@ async function publish(state) {
   state.report = "Настройки сохранены. Ожидается сборка подписок.";
   sources = await loadSources(expectedCommit);
   state.base = baseline(sources);
-  await buildStatus();
+  await buildStatus(true);
 }
 $("publish").onclick = () => run(async () => {
   if ($("publish").disabled) return;
   if (snapshot && (JSON.stringify(sources[configPath].data) !== JSON.stringify(snapshot.config) ||
       names.some(name => snapshot.manualText && snapshot.manualText[name] !== sources[`source/${name}.txt`].data)) &&
       !window.confirm("Сохранённые настройки отличаются от опубликованного набора. Заменить их выбранной версией?")) return;
-  $("editor").disabled = true;
+  editorDisabled(true);
   try { await publish(active); }
-  finally { $("editor").disabled = false; controls(); }
+  finally { editorDisabled(false); }
 }, $("report"));
 $("refresh").onclick = $("catalog").onchange = refresh;
 $("query").oninput = matches;
@@ -450,45 +499,61 @@ $("addCatalog").onsubmit = e => {e.preventDefault();run(async ()=>{
   config.catalogs.push({url,name});catalogOptions(url);change();e.target.reset();await refresh();
 });};
 $("repo").href=`https://github.com/${repo}`;
-run(async ()=>{
-  const warnings = [];
-  async function load(path, label, optional = false) {
-    try { return await read(path); }
-    catch (error) {
-      if (!optional || error.status !== 404) warnings.push(label + ". " + error.message);
-    }
-  }
-  const [published, request, current] = await Promise.all([
-    load("docs/published-routes.json","Не удалось загрузить опубликованный набор"),
-    load("preview/request.json","Не удалось загрузить последний черновик",true),
-    loadSources()
-  ]);
-  sources = current;
-  snapshot = published?.data;
-  const raw = Object.fromEntries(names.map(name => [name, sources[`source/${name}.txt`].data]));
-  if (snapshot) {
-    const manual = {...raw};
-    for (const name of names) {
-      const values = raw[name].split(/\r?\n/).map(s => s.trim().toLowerCase()).filter(s => s && !s.startsWith("#"));
-      if (JSON.stringify([...new Set(values)]) !== JSON.stringify(snapshot.manual[name])) {
-        manual[name] = snapshot.manual[name].join("\n") + (snapshot.manual[name].length ? "\n" : "");
+let loadingSettings = false;
+async function loadSettings() {
+  if (loadingSettings || active) return;
+  loadingSettings = true;
+  $("reloadSettings").disabled = true;
+  $("status").textContent = "Загрузка настроек…";
+  try {
+    const warnings = [];
+    async function load(path, label, optional = false) {
+      try { return await read(path); }
+      catch (error) {
+        if (!optional || error.status !== 404) warnings.push(label + ". " + error.message);
       }
     }
-    views.published = view(snapshot.config, snapshot.manualText || manual);
+    const [published, request, current] = await Promise.all([
+      load("docs/published-routes.json","Не удалось загрузить опубликованный набор"),
+      load("preview/request.json","Не удалось загрузить последний черновик",true),
+      loadSources()
+    ]);
+    sources = current;
+    snapshot = published?.data;
+    const raw = Object.fromEntries(names.map(name => [name, sources[`source/${name}.txt`].data]));
+    if (snapshot) {
+      const manual = {...raw};
+      for (const name of names) {
+        const values = raw[name].split(/\r?\n/).map(s => s.trim().toLowerCase()).filter(s => s && !s.startsWith("#"));
+        if (JSON.stringify([...new Set(values)]) !== JSON.stringify(snapshot.manual[name])) {
+          manual[name] = snapshot.manual[name].join("\n") + (snapshot.manual[name].length ? "\n" : "");
+        }
+      }
+      views.published = view(snapshot.config, snapshot.manualText || manual);
+    }
+    if (request?.data?.id) {
+      const draft = request.data;
+      latestId = draft.id;
+      views.draft = view(draft.config, draft.manual || raw, draft.manual && draft.base ? latestId : undefined, draft.base);
+      if (!views.draft.id) views.draft.report = "Проверьте черновик перед публикацией.";
+    }
+    if (!views.published && !views.draft) {
+      views.draft = view(sources[configPath].data, raw);
+    }
+    if (views.published || views.draft) {
+      show(views.published ? "published" : "draft");
+      editorDisabled(false);
+      if (latestId) void observe(latestId);
+    }
+    $("status").textContent = warnings.join(" ");
+    $("reloadSettings").hidden = true;
+  } finally {
+    loadingSettings = false;
+    $("reloadSettings").disabled = false;
   }
-  if (request?.data?.id) {
-    const draft = request.data;
-    latestId = draft.id;
-    views.draft = view(draft.config, draft.manual || raw, draft.manual && draft.base ? latestId : undefined, draft.base);
-    if (!views.draft.id) views.draft.report = "Проверьте черновик перед публикацией.";
-  }
-  if (views.published || views.draft) {
-    show(views.published ? "published" : "draft");
-    $("editor").disabled=false;
-    if (latestId) void observe(latestId);
-  }
-  $("status").textContent = warnings.join(" ");
-});
-$("token").onchange = () => run(buildStatus);
+}
+$("reloadSettings").onclick = () => run(loadSettings);
+$("token").onchange = () => { run(() => buildStatus(true)); if (!active) run(loadSettings); else run(refresh); };
+run(loadSettings);
 run(buildStatus);
 setInterval(()=>{if(!document.hidden) run(buildStatus);},60000);
