@@ -112,6 +112,8 @@
         "2001:67c:4e8::/48"
       ],
       "domain_suffix": [
+        "merkandi.com",
+        "bstock.com",
         "cdn-telegram.org",
         "comments.app",
         "contest.com",
