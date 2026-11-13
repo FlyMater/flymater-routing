@@ -13,6 +13,48 @@ const views = {};
 const policies = {proxy:"PROXY", direct:"DIRECT", reject:"REJECT", local:"Локальные исключения → DIRECT"};
 const names = Object.keys(policies);
 let active, config, sources, snapshot, latestId;
+let activeTab = "sets";
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+function activateTab(name) {
+  activeTab = name;
+  for (const tab of tabs) {
+    const selected = tab.id === `tab-${name}`;
+    tab.setAttribute("aria-selected", String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+    const panel = $(tab.getAttribute("aria-controls"));
+    if (panel) panel.hidden = !selected;
+  }
+  document.querySelector('[aria-labelledby="selected-title"] .column-body').scrollTop = 0;
+}
+for (const [index, tab] of tabs.entries()) {
+  tab.onclick = () => activateTab(tab.id.slice(4));
+  tab.onkeydown = event => {
+    let next;
+    if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+    else if (event.key === "ArrowLeft") next = (index + tabs.length - 1) % tabs.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = tabs.length - 1;
+    else return;
+    event.preventDefault();
+    tabs[next].click();
+    tabs[next].focus();
+  };
+}
+function workspaceSize() {
+  const header = document.querySelector("header");
+  const status = $("status");
+  const style = getComputedStyle(status);
+  // Resolve clamp() through the main's computed padding.
+  const padding = parseFloat(getComputedStyle(document.querySelector("main")).paddingTop);
+  const overhead = header.getBoundingClientRect().height + status.getBoundingClientRect().height +
+    (style.display === "none" ? 0 : parseFloat(style.marginBottom)) + 2 * padding;
+  document.documentElement.style.setProperty("--workspace-overhead", `${overhead}px`);
+}
+const workspaceObserver = new ResizeObserver(workspaceSize);
+workspaceObserver.observe(document.querySelector("header"));
+workspaceObserver.observe($("status"));
+window.addEventListener("resize", workspaceSize);
+workspaceSize();
 function baseline(files) {
   return Object.fromEntries(Object.entries(files).map(([path, file]) => [path, file.sha]));
 }
@@ -168,6 +210,13 @@ function manualEditor() {
   const list = $("manual");
   list.replaceChildren();
   for (const [name, title] of Object.entries(policies)) {
+    const panel = node("div");
+    panel.id = `panel-${name}`;
+    panel.setAttribute("role", "tabpanel");
+    panel.setAttribute("aria-labelledby", `tab-${name}`);
+    panel.tabIndex = 0;
+    panel.hidden = activeTab !== name;
+    const help = node("p", "По одному домену или IPv4/IPv6-подсети в строке, например 149.154.160.0/20. Строка #Telegramm начинает набор, строка с «# » — комментарий.");
     const label = node("label", title);
     const input = node("textarea");
     input.rows = 4;
@@ -178,7 +227,8 @@ function manualEditor() {
       change();
     };
     label.append(input);
-    list.append(label);
+    panel.append(help, label);
+    list.append(panel);
   }
 }
 function catalogOptions(active) {
@@ -437,7 +487,7 @@ run(async ()=>{
     $("editor").disabled=false;
     if (latestId) void observe(latestId);
   }
-  $("status").textContent = warnings.join(" ") || "Настройки загружены из " + repo;
+  $("status").textContent = warnings.join(" ");
 });
 $("token").onchange = () => run(buildStatus);
 run(buildStatus);
