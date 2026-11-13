@@ -1,12 +1,12 @@
 # Прямое соединение
-beget.com
-apple.com
-icloud.com
-icloud-content.com
 apple-cloudkit.com
-apple-livephotoskit.com
 apple-dns.net
+apple-livephotoskit.com
+apple.com
+beget.com
 cdn-apple.com
-mzstatic.com
+icloud-content.com
+icloud.com
 itunes.com
+mzstatic.com
 
