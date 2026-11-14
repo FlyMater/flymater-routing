@@ -1,5 +1,6 @@
-"""Источники наборов. Сетевые запросы выполняются без учётных данных."""
+"""Источники наборов. GitHub API использует GITHUB_TOKEN, если он задан."""
 import json
+import os
 import re
 import time
 import urllib.error
@@ -17,6 +18,10 @@ def https(url):
 
 def fetch(url):
     request = urllib.request.Request(https(url), headers={"User-Agent": "FlyMater-Routing"})
+    parts = urlsplit(url)
+    token = os.environ.get("GITHUB_TOKEN")
+    if parts.hostname == "api.github.com" and parts.port in (None, 443) and token:
+        request.add_unredirected_header("Authorization", f"Bearer {token}")
     for attempt in range(4):
         try:
             with urllib.request.urlopen(request, timeout=60) as response:

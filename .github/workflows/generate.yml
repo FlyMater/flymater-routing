@@ -22,6 +22,8 @@ jobs:
           python-version: '3.13'
       - uses: ./.github/actions/sing-box
       - run: python scripts/generate.py
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
       - name: Опубликовать проверенные подписки
         run: |
           git add awg shadowrocket throne singbox docs/published-routes.json

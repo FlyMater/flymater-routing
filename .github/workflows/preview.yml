@@ -20,6 +20,8 @@ jobs:
           python-version: '3.13'
       - uses: ./.github/actions/sing-box
       - run: python scripts/generate.py --preview
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
       - run: |
           git add preview/result.json
           bash scripts/publish.sh "Сохранить результат проверки маршрутов" preview/request.json
