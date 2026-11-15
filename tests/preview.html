@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ru"><meta charset="utf-8"><title>Тесты проверки черновика</title>
+<pre id="results">Выполняется…</pre>
+<script type="module">
+import {runTests} from "./test_preview.mjs";
+try {
+  const results = await runTests();
+  const failed = results.filter(test => !test.passed);
+  document.getElementById("results").textContent = results.map(test =>
+    `${test.passed ? "PASS" : "FAIL"} ${test.name}${test.error ? "\n" + test.error : ""}`).join("\n") +
+    `\n\n${results.length - failed.length}/${results.length} passed`;
+  document.title = failed.length ? "FAIL" : "PASS";
+} catch (error) {
+  document.getElementById("results").textContent = error.stack;
+  document.title = "FAIL";
+}
+</script></html>
