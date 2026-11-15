@@ -1,4 +1,5 @@
 import {describe, geositeCatalog, useGeositeExamples} from "./names.js";
+import {observePreview} from "./preview.js";
 const $ = id => document.getElementById(id);
 const onPages = location.hostname.endsWith(".github.io");
 const owner = onPages ? location.hostname.split(".")[0] : "FlyMater";
@@ -86,6 +87,11 @@ function controls() {
   $("check").disabled = !onPages || editingBusy;
   $("publish").disabled = !onPages || editingBusy || !sources || !active.verified || active.id !== latestId;
   $("report").textContent = active.report;
+  if (active.previewUrl) {
+    const link = node("a", "Открыть проверку в GitHub Actions ↗");
+    link.href = active.previewUrl;
+    $("report").append(" ", link);
+  }
   if (!onPages) {
     const pages = node("a", "Открыть панель на GitHub Pages");
     pages.href = `https://${owner.toLowerCase()}.github.io/${repository}/`;
@@ -135,10 +141,10 @@ async function json(url, options = {}) {
   }
   return response.json();
 }
-async function file(path, ref = branch) {
+async function file(path, ref = branch, options = {}) {
   const token = $("token").value.trim();
   const headers = token ? {Authorization:`Bearer ${token}`} : {};
-  const blob = await json(`${api}/contents/${path}?ref=${ref}`, {headers, redirect:"error"});
+  const blob = await json(`${api}/contents/${path}?ref=${encodeURIComponent(ref)}`, {...options, headers, redirect:"error"});
   const text = new TextDecoder().decode(Uint8Array.from(atob(blob.content), c => c.charCodeAt(0)));
   return {sha:blob.sha, data:path.endsWith(".json") ? JSON.parse(text) : text};
 }
@@ -153,6 +159,7 @@ async function write(path, value, sha, message) {
 function change() {
   active.id = undefined;
   active.verified = false;
+  active.previewUrl = undefined;
   active.report = "Есть изменения. Проверьте черновик перед публикацией.";
   controls();
 }
@@ -365,11 +372,12 @@ async function buildStatus(force = false) {
   const labels = {success:"успешно",failure:"ошибка",in_progress:"выполняется",queued:"в очереди",cancelled:"отменена"};
   $("build").replaceChildren(link," · "+(labels[run.conclusion || run.status] || run.status)+" · "+new Date(run.created_at).toLocaleString("ru"));
 }
-async function read(path, ref = branch) {
+async function read(path, ref = branch, {fresh = false, signal} = {}) {
   // Public reads do not consume the GitHub API quota. Keep Git blob hashes
   // compatible with the authenticated conflict checks used during publication.
-  const url = onPages ? `https://raw.githubusercontent.com/${repo}/${ref}/${path}` : "../" + path;
-  const response = await fetch(url, {cache:"no-store"});
+  let url = onPages ? `https://raw.githubusercontent.com/${repo}/${ref}/${path}` : "../" + path;
+  if (fresh) url += "?poll=" + crypto.randomUUID();
+  const response = await fetch(url, {cache:"no-store", signal});
   if (!response.ok) {
     const error = Error(path + " · HTTP " + response.status);
     error.status = response.status;
@@ -387,34 +395,39 @@ async function read(path, ref = branch) {
   const text = new TextDecoder().decode(bytes);
   return {sha, data:path.endsWith(".json") ? JSON.parse(text) : text};
 }
-async function observe(id) {
-  const update = (report, verified = false) => {
-    for (const state of Object.values(views)) {
-      if (state.id === id) Object.assign(state, {report, verified});
-    }
-    if (active?.id === id) controls();
-  };
-  update("Черновик сохранён. Ожидание результата проверки…");
-  for (let attempt = 0; attempt < 90 && latestId === id; attempt++) {
-    let result;
-    try { result = (await read("preview/result.json")).data; }
-    catch (error) {
-      if (error.status !== 404) {
-        if (latestId === id) update("Не удалось загрузить результат проверки. " + error.message);
-        return;
+async function previewData(path, signal) {
+  return (onPages && $("token").value.trim()
+    ? await file(path, branch, {signal}) : await read(path, branch, {fresh:true, signal})).data;
+}
+function observe(id, commit) {
+  return observePreview({id,
+    isCurrent: () => latestId === id && Object.values(views).some(state => state.id === id),
+    load: previewData,
+    getRun: async signal => {
+      const token = $("token").value.trim();
+      const headers = token ? {Authorization:`Bearer ${token}`} : {};
+      if (!commit) {
+        const commits = await json(`${api}/commits?sha=${branch}&path=preview%2Frequest.json&per_page=1`, {headers, signal});
+        if (!commits.length) return;
+        const candidate = commits[0].sha;
+        if ((await file("preview/request.json", candidate, {signal})).data.id !== id) return;
+        commit = candidate;
       }
+      const data = await json(`${api}/actions/workflows/preview.yml/runs?branch=${branch}&head_sha=${encodeURIComponent(commit)}&per_page=1`, {headers, signal});
+      return data.workflow_runs[0];
+    },
+    update: ({message, verified, url}) => {
+      const report = typeof message === "string" ? message : [
+        verified ? "Проверка завершена." : "Публикация заблокирована.", ...message.issues,
+        ...(message.coverage || []).map(({tag, client, status, skipped}) =>
+          `${tag} → ${clients[client]}: ${status}${skipped.length ? ". Пропущено: " + skipped.join(", ") : ""}`)
+      ].join("\n");
+      for (const state of Object.values(views)) {
+        if (state.id === id) Object.assign(state, {report, verified, previewUrl:url});
+      }
+      if (active?.id === id) controls();
     }
-    if (latestId !== id) return;
-    if (result?.id === id) {
-      const rows = (result.coverage || []).map(({tag, client, status, skipped}) =>
-        `${tag} → ${clients[client]}: ${status}${skipped.length ? ". Пропущено: " + skipped.join(", ") : ""}`);
-      const ok = result.issues.length === 0;
-      update([ok ? "Проверка завершена." : "Публикация заблокирована.", ...result.issues, ...rows].join("\n"), ok);
-      return;
-    }
-    await new Promise(resolve => setTimeout(resolve,10000));
-  }
-  if (latestId === id) update("Проверка не завершилась. Проверьте workflow и повторите.");
+  });
 }
 $("check").onclick = () => run(async () => {
   if (!$("token").value.trim()) throw Error("Введите GitHub-токен для проверки черновика.");
@@ -426,14 +439,14 @@ $("check").onclick = () => run(async () => {
         !window.confirm("Исходные файлы изменились со времени создания черновика. Проверить его для замены текущих настроек?")) return;
     let sha;
     try { sha = (await file("preview/request.json")).sha; } catch (e) { if (e.status !== 404) throw e; }
-    await write("preview/request.json",{id,config:draft,manual:state.manual,base},sha,"Проверить черновик маршрутизации");
+    const saved = await write("preview/request.json",{id,config:draft,manual:state.manual,base},sha,"Проверить черновик маршрутизации");
     state.base = base;
     latestId = id;
     state.id = id;
     state.verified = false;
     views.draft = state === views.draft ? state : view(draft,state.manual,id,state.base);
     options();
-    void observe(id);
+    void observe(id, saved.commit.sha);
   } finally { editorDisabled(false); }
 }, $("report"));
 const sourcePaths = [configPath, ...names.map(name => `source/${name}.txt`)];
@@ -509,7 +522,8 @@ async function loadSettings() {
   try {
     const warnings = [];
     async function load(path, label, optional = false) {
-      try { return await read(path); }
+      try { return path === "preview/request.json"
+        ? {data:await previewData(path, AbortSignal.timeout(30000))} : await read(path); }
       catch (error) {
         if (!optional || error.status !== 404) warnings.push(label + ". " + error.message);
       }
