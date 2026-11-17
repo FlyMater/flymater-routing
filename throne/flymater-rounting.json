@@ -44,6 +44,7 @@
       "action": "route",
       "outbound": "proxy",
       "domain_suffix": [
+        "1688.com",
         "4vps.su",
         "ably.net",
         "api.revenuecat.com",
@@ -1604,7 +1605,6 @@
         ".taobao",
         ".tmall",
         "11222.cn",
-        "1688.com",
         "25pp.com",
         "56che.com",
         "56xiniao.com",
