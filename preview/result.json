@@ -1,5 +1,5 @@
 {
-  "id": "7bad82e8-d075-420c-b0ad-3f07d828e912",
+  "id": "a2fbf6e3-8f5a-4601-b5ab-36afa6ac5de0",
   "issues": [],
   "coverage": [
     {
@@ -477,6 +477,41 @@
     },
     {
       "tag": "geosite-google",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-alibaba",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-alibaba",
+      "client": "ndms",
+      "status": "частично",
+      "skipped": [
+        "domain",
+        "domain_suffix (.alibaba)",
+        "domain_suffix (.alipay)",
+        "domain_suffix (.taobao)",
+        "domain_suffix (.tmall)"
+      ]
+    },
+    {
+      "tag": "geosite-alibaba",
+      "client": "shadowrocket",
+      "status": "частично",
+      "skipped": [
+        "domain_suffix (.alibaba)",
+        "domain_suffix (.alipay)",
+        "domain_suffix (.taobao)",
+        "domain_suffix (.tmall)"
+      ]
+    },
+    {
+      "tag": "geosite-alibaba",
       "client": "throne",
       "status": "полностью",
       "skipped": []
