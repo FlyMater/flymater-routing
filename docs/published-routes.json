@@ -136,6 +136,13 @@
         "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
         "policy": "proxy",
         "exclude": []
+      },
+      {
+        "tag": "geosite-alibaba",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-alibaba.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
       }
     ]
   },
@@ -253,7 +260,8 @@
         "Zoom",
         "Twitch",
         "Whatsapp",
-        "Google"
+        "Google",
+        "Alibaba"
       ],
       "direct": [
         "DIRECT",
@@ -279,7 +287,8 @@
         "Zoom",
         "Twitch",
         "Whatsapp",
-        "Google"
+        "Google",
+        "Alibaba"
       ]
     },
     "shadowrocket": {
@@ -303,7 +312,8 @@
         "Zoom",
         "Twitch",
         "Whatsapp",
-        "Google"
+        "Google",
+        "Alibaba"
       ],
       "direct": [
         "DIRECT",
@@ -332,7 +342,8 @@
         "Zoom",
         "Twitch",
         "Whatsapp",
-        "Google"
+        "Google",
+        "Alibaba"
       ],
       "direct": [
         "DIRECT",
