@@ -1,4 +1,4 @@
-import {observePreview} from "../docs/preview.js";
+import {observePreview, formatPreviewReport} from "../docs/preview.js";
 
 export async function runTests() {
   const results = [];
@@ -106,6 +106,26 @@ export async function runTests() {
       getRun:async () => { runs++; }});
     assert(out.time === 900000 && runs === 15 && !out.last.verified);
     assert(out.last.message.includes("15 минут"));
+  });
+  await test("Отчёт показывает ручные группы и ограничения клиента", async () => {
+    const report = formatPreviewReport({issues:[], coverage:[], manualCoverage:[
+      {source:"proxy.txt", tag:"Named", client:"throne", policy:"proxy", count:2, includedCount:2, status:"полностью", reason:""},
+      {source:"direct.txt", tag:"DIRECT", client:"ndms", policy:"direct", count:1, includedCount:0,
+        status:"не вошла в подписку", reason:"NDMS поддерживает только маршрут PROXY"}
+    ]}, {throne:"Throne", ndms:"AWG NDMS"});
+    assert(report.includes("Ручные группы") && report.includes("proxy.txt · #Named → Throne · PROXY"));
+    assert(report.includes("записей: 2, включено: 2") && report.includes("NDMS поддерживает только маршрут PROXY"));
+  });
+  await test("Старый отчёт предлагает повторную проверку", async () => {
+    assert(formatPreviewReport(done(), {}).includes("Повторите проверку черновика"));
+    assert(formatPreviewReport({...done(), manualCoverage:[]}, {}).includes("Ручные группы отсутствуют"));
+  });
+  await test("Ошибка сборки исключает сообщение об успешном включении", async () => {
+    const report = formatPreviewReport({issues:["Конфликт"], manualCoverage:[
+      {source:"proxy.txt", tag:"PROXY", client:"throne", policy:"proxy", count:1, includedCount:1, status:"полностью"}
+    ]}, {throne:"Throne"});
+    assert(report.includes("Публикация заблокирована. Профиль не сформирован."));
+    assert(report.includes("включено: 0") && !report.includes("полностью"));
   });
   return results;
 }

@@ -1,5 +1,25 @@
 // Observe one draft. The panel owns authentication and rendering; this module
 // keeps polling, deadlines and stale-response protection in one place.
+export function formatPreviewReport(result, clients) {
+  const failed = result.issues.length > 0;
+  const lines = [failed ? "Публикация заблокирована. Профиль не сформирован." : "Проверка завершена.",
+    ...result.issues,
+    ...(result.coverage || []).map(({tag, client, status, skipped}) =>
+      `${tag} → ${clients[client]}: ${status}${skipped.length ? ". Пропущено: " + skipped.join(", ") : ""}`),
+    "", "Ручные группы"];
+  if (!Array.isArray(result.manualCoverage)) {
+    lines.push("Подробности ручных групп недоступны. Повторите проверку черновика.");
+  } else if (!result.manualCoverage.length) {
+    lines.push(failed ? "Сводка ручных групп не сформирована из-за ошибки проверки." : "Ручные группы отсутствуют.");
+  } else {
+    lines.push(...result.manualCoverage.map(({source, tag, client, policy, count, includedCount, status, reason}) =>
+      `${source} · #${tag} → ${clients[client]} · ${policy.toUpperCase()}: ` +
+      `${failed ? "профиль не сформирован" : status}; записей: ${count}, включено: ${failed ? 0 : includedCount}` +
+      (reason ? ". " + reason : "")));
+  }
+  return lines.join("\n");
+}
+
 export async function observePreview({id, load, getRun, update, isCurrent,
   now = Date.now, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
   signalFor = ms => AbortSignal.timeout(ms)}) {
