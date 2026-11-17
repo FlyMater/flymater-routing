@@ -206,10 +206,25 @@ def overlaps(assignments, locations=None):
         active.append((network, policy))
 
 
-def assemble(root, cfg, work, issues, coverage=None, manual_text=None):
+def assemble(root, cfg, work, issues, coverage=None, manual_text=None, manual_coverage=None):
     texts = manual_sources(root) if manual_text is None else manual_text
     locations = {}
     lists = parse_manual(texts, locations)
+    manual_report = []
+    for name, blocks in lists.items():
+        policy = "direct" if name == "local" else name
+        for tag, entries in blocks.items():
+            for client in CLIENTS:
+                excluded = client == "ndms" and policy != "proxy"
+                manual_report.append({
+                    "source": f"{name}.txt", "tag": tag or name.upper(),
+                    "client": client, "policy": policy, "count": len(entries),
+                    "includedCount": 0,
+                    "status": "не вошла в подписку" if excluded else "профиль не сформирован",
+                    "reason": "NDMS поддерживает только маршрут PROXY" if excluded else "",
+                })
+    if manual_coverage is not None:
+        manual_coverage.extend(manual_report)
     paths = [https(item["url"]) for item in cfg["catalogs"]]
     if len(set(paths)) != len(paths):
         raise ValueError("Каталог указан дважды")
@@ -325,6 +340,10 @@ def assemble(root, cfg, work, issues, coverage=None, manual_text=None):
         "tags": {client: {name: [tag or name.upper() for tag in blocks] for name, blocks in grouped.items() if blocks}
                  for client, grouped in groups.items()},
     })
+    for row in manual_report:
+        if not row["reason"]:
+            row["status"] = "полностью"
+            row["includedCount"] = row["count"]
     return outputs
 
 
@@ -335,10 +354,11 @@ def main():
     req = json.loads((ROOT / ("preview/request.json" if args.preview else "source/routing.json")).read_text())
     issues = []
     coverage = []
+    manual_coverage = []
     try:
         with tempfile.TemporaryDirectory() as tmp:
             outputs = assemble(ROOT, req["config"] if args.preview else req, Path(tmp), issues, coverage,
-                               req.get("manual") if args.preview else None)
+                               req.get("manual") if args.preview else None, manual_coverage)
         if issues:
             raise ValueError("\n".join(issues))
         if not args.preview:
@@ -352,7 +372,10 @@ def main():
         if not issues:
             issues.append(str(exc))
     if args.preview:
-        (ROOT / "preview/result.json").write_bytes(document({"id": req["id"], "issues": issues, "coverage": coverage}))
+        (ROOT / "preview/result.json").write_bytes(document({
+            "id": req["id"], "issues": issues, "coverage": coverage,
+            "manualCoverage": manual_coverage,
+        }))
 
 
 if __name__ == "__main__":

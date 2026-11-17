@@ -198,6 +198,69 @@ class RoutingTests(unittest.TestCase):
             req["manual"]["direct"] = "https://bad.example"
             self.assertRegex(check()[0], r"direct\.txt.*https://bad\.example")
 
+    def test_manual_group_coverage(self):
+        texts = dict(local="lan", proxy="one.example\nONE.example\n#Named\ntwo.example\n198.51.100.0/24",
+                     direct="# Empty\n", reject="blocked.example")
+        report = []
+        outputs = gen.assemble(ROOT, {"catalogs": [], "sets": []}, self.work, [],
+                               manual_text=texts, manual_coverage=report)
+        self.assertEqual(len(report), 16)
+        named = next(row for row in report if row["tag"] == "Named" and row["client"] == "throne")
+        self.assertEqual((named["count"], named["includedCount"], named["status"]), (2, 2, "полностью"))
+        unnamed = next(row for row in report if row["tag"] == "PROXY" and row["client"] == "throne")
+        self.assertEqual(unnamed["count"], 1)
+        self.assertEqual(unnamed["source"], "proxy.txt")
+        rules = json.loads(outputs["throne/flymater-rounting.json"])["rules"]
+        rule = next(rule for rule in rules if rule["name"] == "#Named")
+        self.assertEqual(rule["domain_suffix"], ["two.example"])
+        self.assertEqual(rule["ip_cidr"], ["198.51.100.0/24"])
+        for row in report:
+            if row["client"] == "ndms" and row["policy"] != "proxy":
+                self.assertEqual(row["includedCount"], 0)
+                self.assertIn("только маршрут PROXY", row["reason"])
+        empty = []
+        gen.assemble(ROOT, {"catalogs": [], "sets": []}, self.work, [],
+                     manual_text=dict.fromkeys(("local", *gen.POLICIES), ""), manual_coverage=empty)
+        self.assertEqual(empty, [])
+
+    def test_manual_coverage_on_build_failure(self):
+        texts = dict(local="", proxy="one.example", direct="", reject="")
+        for failure in ("conflict", "compile"):
+            with self.subTest(failure=failure):
+                report, issues = [], []
+                config = self.cfg if failure == "conflict" else {"catalogs": [], "sets": []}
+                self.item["policy"] = "direct"
+                with patch.object(gen, "read_set", return_value=[{"domain_suffix": ["one.example"]}]), \
+                     patch.object(gen, "codec", side_effect=ValueError("Ошибка компиляции")):
+                    if failure == "compile":
+                        with self.assertRaisesRegex(ValueError, "Ошибка компиляции"):
+                            gen.assemble(ROOT, config, self.work, issues, manual_text=texts, manual_coverage=report)
+                    else:
+                        self.assertEqual(gen.assemble(ROOT, config, self.work, issues,
+                                                     manual_text=texts, manual_coverage=report), {})
+                        self.assertIn("proxy.txt, строка 1", str(issues))
+                self.assertTrue(report)
+                self.assertTrue(all(row["status"] == "профиль не сформирован" and row["includedCount"] == 0
+                                    for row in report))
+
+    def test_preview_serializes_manual_coverage(self):
+        preview = self.work / "preview"
+        preview.mkdir()
+        req = {"id": "groups", "config": {"catalogs": [], "sets": []},
+               "manual": dict(local="", proxy="#Named\none.example", direct="", reject="")}
+        with patch.object(gen, "ROOT", self.work), patch.object(sys, "argv", ["generate.py", "--preview"]):
+            (preview / "request.json").write_bytes(gen.document(req))
+            gen.main()
+            result = json.loads((preview / "result.json").read_text(encoding="utf-8"))
+            self.assertEqual(result["issues"], [])
+            self.assertEqual(len(result["manualCoverage"]), 4)
+            self.assertTrue(all(row["includedCount"] == 1 for row in result["manualCoverage"]))
+            with patch.object(gen, "codec", side_effect=ValueError("Ошибка компиляции")):
+                gen.main()
+            result = json.loads((preview / "result.json").read_text(encoding="utf-8"))
+            self.assertEqual(result["issues"], ["Ошибка компиляции"])
+            self.assertTrue(all(row["includedCount"] == 0 for row in result["manualCoverage"]))
+
     def test_add_update_move(self):
         rules = [{"domain_suffix": ["route.example"], "ip_cidr": ["198.51.100.0/24"]}]
         with patch.object(gen, "fetch", return_value=self.source(rules)) as fetch:

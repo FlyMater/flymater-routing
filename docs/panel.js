@@ -1,5 +1,5 @@
 import {describe, geositeCatalog, useGeositeExamples} from "./names.js";
-import {observePreview} from "./preview.js";
+import {observePreview, formatPreviewReport} from "./preview.js";
 const $ = id => document.getElementById(id);
 const onPages = location.hostname.endsWith(".github.io");
 const owner = onPages ? location.hostname.split(".")[0] : "FlyMater";
@@ -417,11 +417,7 @@ function observe(id, commit) {
       return data.workflow_runs[0];
     },
     update: ({message, verified, url}) => {
-      const report = typeof message === "string" ? message : [
-        verified ? "Проверка завершена." : "Публикация заблокирована.", ...message.issues,
-        ...(message.coverage || []).map(({tag, client, status, skipped}) =>
-          `${tag} → ${clients[client]}: ${status}${skipped.length ? ". Пропущено: " + skipped.join(", ") : ""}`)
-      ].join("\n");
+      const report = typeof message === "string" ? message : formatPreviewReport(message, clients);
       for (const state of Object.values(views)) {
         if (state.id === id) Object.assign(state, {report, verified, previewUrl:url});
       }
