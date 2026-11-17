@@ -1,5 +1,5 @@
 {
-  "id": "7bad82e8-d075-420c-b0ad-3f07d828e912",
+  "id": "a2fbf6e3-8f5a-4601-b5ab-36afa6ac5de0",
   "config": {
     "catalogs": [
       {
@@ -137,6 +137,13 @@
         "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
         "policy": "proxy",
         "exclude": []
+      },
+      {
+        "tag": "geosite-alibaba",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-alibaba.srs",
+        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+        "policy": "proxy",
+        "exclude": []
       }
     ]
   },
@@ -148,7 +155,7 @@
   },
   "base": {
     "source/routing.json": "f7897d5220cb789592cd61f3da78d39d9e5caa09",
-    "source/proxy.txt": "e280df17850aed8bedf5b4db1bf70ec95f247b4b",
+    "source/proxy.txt": "0701f91aae4b0295a8c60c1deffadafbf237b2e6",
     "source/direct.txt": "8663c3e4097dfec63e74aa2faf56df71eff78619",
     "source/reject.txt": "222b8238d3daf071a0477bbde8196b3f298a3f83",
     "source/local.txt": "2c1cd124ff07e1b7c44df0f89159bd018d74853d"
