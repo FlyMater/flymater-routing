@@ -47,7 +47,7 @@ tiktokv.eu
 tronscan.org
 vdsina.com
 winance.exchange
-1688.com
+aliyuncs.com
 
 #Telegramm
 109.239.140.0/24
