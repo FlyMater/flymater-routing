@@ -1,5 +1,5 @@
 {
-  "id": "f1b26fb6-e4b2-46fe-948c-704ce9132993",
+  "id": "24cec16d-fac7-4843-a33d-532280310727",
   "issues": [],
   "coverage": [
     {
@@ -515,6 +515,168 @@
       "client": "throne",
       "status": "полностью",
       "skipped": []
+    }
+  ],
+  "manualCoverage": [
+    {
+      "source": "local.txt",
+      "tag": "LOCAL",
+      "client": "singbox",
+      "policy": "direct",
+      "count": 3,
+      "includedCount": 3,
+      "status": "полностью",
+      "reason": ""
+    },
+    {
+      "source": "local.txt",
+      "tag": "LOCAL",
+      "client": "ndms",
+      "policy": "direct",
+      "count": 3,
+      "includedCount": 0,
+      "status": "не вошла в подписку",
+      "reason": "NDMS поддерживает только маршрут PROXY"
+    },
+    {
+      "source": "local.txt",
+      "tag": "LOCAL",
+      "client": "shadowrocket",
+      "policy": "direct",
+      "count": 3,
+      "includedCount": 3,
+      "status": "полностью",
+      "reason": ""
+    },
+    {
+      "source": "local.txt",
+      "tag": "LOCAL",
+      "client": "throne",
+      "policy": "direct",
+      "count": 3,
+      "includedCount": 3,
+      "status": "полностью",
+      "reason": ""
+    },
+    {
+      "source": "proxy.txt",
+      "tag": "PROXY",
+      "client": "singbox",
+      "policy": "proxy",
+      "count": 51,
+      "includedCount": 51,
+      "status": "полностью",
+      "reason": ""
+    },
+    {
+      "source": "proxy.txt",
+      "tag": "PROXY",
+      "client": "ndms",
+      "policy": "proxy",
+      "count": 51,
+      "includedCount": 51,
+      "status": "полностью",
+      "reason": ""
+    },
+    {
+      "source": "proxy.txt",
+      "tag": "PROXY",
+      "client": "shadowrocket",
+      "policy": "proxy",
+      "count": 51,
+      "includedCount": 51,
+      "status": "полностью",
+      "reason": ""
+    },
+    {
+      "source": "proxy.txt",
+      "tag": "PROXY",
+      "client": "throne",
+      "policy": "proxy",
+      "count": 51,
+      "includedCount": 51,
+      "status": "полностью",
+      "reason": ""
+    },
+    {
+      "source": "proxy.txt",
+      "tag": "Telegramm",
+      "client": "singbox",
+      "policy": "proxy",
+      "count": 16,
+      "includedCount": 16,
+      "status": "полностью",
+      "reason": ""
+    },
+    {
+      "source": "proxy.txt",
+      "tag": "Telegramm",
+      "client": "ndms",
+      "policy": "proxy",
+      "count": 16,
+      "includedCount": 16,
+      "status": "полностью",
+      "reason": ""
+    },
+    {
+      "source": "proxy.txt",
+      "tag": "Telegramm",
+      "client": "shadowrocket",
+      "policy": "proxy",
+      "count": 16,
+      "includedCount": 16,
+      "status": "полностью",
+      "reason": ""
+    },
+    {
+      "source": "proxy.txt",
+      "tag": "Telegramm",
+      "client": "throne",
+      "policy": "proxy",
+      "count": 16,
+      "includedCount": 16,
+      "status": "полностью",
+      "reason": ""
+    },
+    {
+      "source": "direct.txt",
+      "tag": "DIRECT",
+      "client": "singbox",
+      "policy": "direct",
+      "count": 10,
+      "includedCount": 10,
+      "status": "полностью",
+      "reason": ""
+    },
+    {
+      "source": "direct.txt",
+      "tag": "DIRECT",
+      "client": "ndms",
+      "policy": "direct",
+      "count": 10,
+      "includedCount": 0,
+      "status": "не вошла в подписку",
+      "reason": "NDMS поддерживает только маршрут PROXY"
+    },
+    {
+      "source": "direct.txt",
+      "tag": "DIRECT",
+      "client": "shadowrocket",
+      "policy": "direct",
+      "count": 10,
+      "includedCount": 10,
+      "status": "полностью",
+      "reason": ""
+    },
+    {
+      "source": "direct.txt",
+      "tag": "DIRECT",
+      "client": "throne",
+      "policy": "direct",
+      "count": 10,
+      "includedCount": 10,
+      "status": "полностью",
+      "reason": ""
     }
   ]
 }
