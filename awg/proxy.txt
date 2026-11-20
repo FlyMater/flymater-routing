@@ -47,6 +47,7 @@ suno.com
 tiktokglobalshopv.com
 tiktokv.eu
 tronscan.org
+tronscanapi.com
 vdsina.com
 winance.exchange
 109.239.140.0/24
