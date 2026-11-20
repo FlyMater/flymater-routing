@@ -48,6 +48,9 @@ tronscan.org
 vdsina.com
 winance.exchange
 aliyuncs.com
+tronscan.org
+btcscan.org
+bscscan.com
 
 #Telegramm
 109.239.140.0/24
