@@ -205,6 +205,7 @@
       "tronscanapi.com",
       "btcscan.org",
       "bscscan.com",
+      "jetbrains.com",
       "109.239.140.0/24",
       "149.154.160.0/20",
       "2001:67c:4e8::/48",
@@ -238,7 +239,7 @@
   },
   "manualText": {
     "local": "# Локальные доменные исключения\nlan\nlocal\nlocalhost\n",
-    "proxy": "# Домены через VPN — начальный пример, дополните своими списками\n4vps.su\nably.net\napi.revenuecat.com\napi.segment.io\napi.teleos.club\nassetsconfigcdn.org\natsecret.com\nblackbit-exchange.com\nblackbit.exchange\nbongacams.com\nbraze.com\ncashflow.fund\ncloudflare-ech.com\nconverter.app\ncrypttex.com\nd2lwuy8qc234o3.cloudfront.net\ndbankcloud.ru\necurrency.org\nerub.money\nerub.site\nfeatureassets.org\nforum.ru-board.com\nhcaptcha.com\nkino.watch\nmarathonbet.com\nmetrics-prod.suno.com\nncnodes.com\nnnmclub.to\nnnmstatic.win\nnotube.net\nplaud.ai\nposthog.com\npotok.cash\nprodregistryv2.org\nrevenuecat.com\nroyallib.com\nrutracker.cc\nrutracker.org\nrutrk.org\nsberkassa.site\nstudio-api-prod.suno.com\nsuno.ai\nsuno.com\ntiktokglobalshopv.com\ntiktokv.eu\ntronscan.org\nvdsina.com\nwinance.exchange\naliyuncs.com\ntronscan.org\ntronscanapi.com\nbtcscan.org\nbscscan.com\n\n#Telegramm\n109.239.140.0/24\n149.154.160.0/20\n2001:67c:4e8::/48\n2001:b28:f23d::/48\n2001:b28:f23f::/48\n91.108.12.0/22\n91.108.16.0/22\n91.108.4.0/22\n91.108.56.0/22\n91.108.8.0/22\nbstock.com\ncalmfox.net\nmerkandi.com\nmerstatic.com\nonesignal.com\nduo6duo8.com",
+    "proxy": "# Домены через VPN — начальный пример, дополните своими списками\n4vps.su\nably.net\napi.revenuecat.com\napi.segment.io\napi.teleos.club\nassetsconfigcdn.org\natsecret.com\nblackbit-exchange.com\nblackbit.exchange\nbongacams.com\nbraze.com\ncashflow.fund\ncloudflare-ech.com\nconverter.app\ncrypttex.com\nd2lwuy8qc234o3.cloudfront.net\ndbankcloud.ru\necurrency.org\nerub.money\nerub.site\nfeatureassets.org\nforum.ru-board.com\nhcaptcha.com\nkino.watch\nmarathonbet.com\nmetrics-prod.suno.com\nncnodes.com\nnnmclub.to\nnnmstatic.win\nnotube.net\nplaud.ai\nposthog.com\npotok.cash\nprodregistryv2.org\nrevenuecat.com\nroyallib.com\nrutracker.cc\nrutracker.org\nrutrk.org\nsberkassa.site\nstudio-api-prod.suno.com\nsuno.ai\nsuno.com\ntiktokglobalshopv.com\ntiktokv.eu\ntronscan.org\nvdsina.com\nwinance.exchange\naliyuncs.com\ntronscan.org\ntronscanapi.com\nbtcscan.org\nbscscan.com\njetbrains.com\n\n#Telegramm\n109.239.140.0/24\n149.154.160.0/20\n2001:67c:4e8::/48\n2001:b28:f23d::/48\n2001:b28:f23f::/48\n91.108.12.0/22\n91.108.16.0/22\n91.108.4.0/22\n91.108.56.0/22\n91.108.8.0/22\nbstock.com\ncalmfox.net\nmerkandi.com\nmerstatic.com\nonesignal.com\nduo6duo8.com",
     "direct": "# Прямое соединение\napple-cloudkit.com\napple-dns.net\napple-livephotoskit.com\napple.com\nbeget.com\ncdn-apple.com\nicloud-content.com\nicloud.com\nitunes.com\nmzstatic.com\n\n",
     "reject": "# Блокируемые домены (пока пусто)\n"
   },

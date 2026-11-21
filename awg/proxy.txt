@@ -24,6 +24,7 @@ erub.site
 featureassets.org
 forum.ru-board.com
 hcaptcha.com
+jetbrains.com
 kino.watch
 marathonbet.com
 metrics-prod.suno.com
