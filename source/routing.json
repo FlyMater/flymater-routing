@@ -142,6 +142,13 @@
       "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
       "policy": "proxy",
       "exclude": []
+    },
+    {
+      "tag": "geosite-steam",
+      "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-steam.srs",
+      "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
+      "policy": "proxy",
+      "exclude": []
     }
   ]
 }
