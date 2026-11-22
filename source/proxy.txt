@@ -53,6 +53,7 @@ tronscanapi.com
 btcscan.org
 bscscan.com
 jetbrains.com
+osvault.project-athens.com
 
 #Telegramm
 109.239.140.0/24
