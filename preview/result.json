@@ -1,5 +1,5 @@
 {
-  "id": "263642da-6315-47bc-a0eb-f8dc0d8c624b",
+  "id": "79b63c95-6f8c-4e22-9f87-1fa7fc299061",
   "issues": [],
   "coverage": [
     {
@@ -589,8 +589,8 @@
       "tag": "PROXY",
       "client": "singbox",
       "policy": "proxy",
-      "count": 53,
-      "includedCount": 53,
+      "count": 54,
+      "includedCount": 54,
       "status": "полностью",
       "reason": ""
     },
@@ -599,8 +599,8 @@
       "tag": "PROXY",
       "client": "ndms",
       "policy": "proxy",
-      "count": 53,
-      "includedCount": 53,
+      "count": 54,
+      "includedCount": 54,
       "status": "полностью",
       "reason": ""
     },
@@ -609,8 +609,8 @@
       "tag": "PROXY",
       "client": "shadowrocket",
       "policy": "proxy",
-      "count": 53,
-      "includedCount": 53,
+      "count": 54,
+      "includedCount": 54,
       "status": "полностью",
       "reason": ""
     },
@@ -619,8 +619,8 @@
       "tag": "PROXY",
       "client": "throne",
       "policy": "proxy",
-      "count": 53,
-      "includedCount": 53,
+      "count": 54,
+      "includedCount": 54,
       "status": "полностью",
       "reason": ""
     },
