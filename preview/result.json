@@ -1,5 +1,5 @@
 {
-  "id": "970b3be4-cd41-4668-b867-13bcfec96d71",
+  "id": "091e75b5-c677-4e28-867b-b048490c7068",
   "issues": [],
   "coverage": [
     {
@@ -517,6 +517,32 @@
       "skipped": []
     },
     {
+      "tag": "geosite-steam",
+      "client": "singbox",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-steam",
+      "client": "ndms",
+      "status": "частично",
+      "skipped": [
+        "domain"
+      ]
+    },
+    {
+      "tag": "geosite-steam",
+      "client": "shadowrocket",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
+      "tag": "geosite-steam",
+      "client": "throne",
+      "status": "полностью",
+      "skipped": []
+    },
+    {
       "tag": "geosite-python",
       "client": "singbox",
       "status": "полностью",
@@ -587,8 +613,8 @@
       "tag": "PROXY",
       "client": "singbox",
       "policy": "proxy",
-      "count": 54,
-      "includedCount": 54,
+      "count": 56,
+      "includedCount": 56,
       "status": "полностью",
       "reason": ""
     },
@@ -597,8 +623,8 @@
       "tag": "PROXY",
       "client": "ndms",
       "policy": "proxy",
-      "count": 54,
-      "includedCount": 54,
+      "count": 56,
+      "includedCount": 56,
       "status": "полностью",
       "reason": ""
     },
@@ -607,8 +633,8 @@
       "tag": "PROXY",
       "client": "shadowrocket",
       "policy": "proxy",
-      "count": 54,
-      "includedCount": 54,
+      "count": 56,
+      "includedCount": 56,
       "status": "полностью",
       "reason": ""
     },
@@ -617,8 +643,8 @@
       "tag": "PROXY",
       "client": "throne",
       "policy": "proxy",
-      "count": 54,
-      "includedCount": 54,
+      "count": 56,
+      "includedCount": 56,
       "status": "полностью",
       "reason": ""
     },
