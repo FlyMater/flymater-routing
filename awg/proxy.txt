@@ -6,6 +6,7 @@ api.segment.io
 api.teleos.club
 assetsconfigcdn.org
 atsecret.com
+bitcoinmagazinepro.com
 blackbit-exchange.com
 blackbit.exchange
 bongacams.com
@@ -1715,3 +1716,9 @@ underlords.com
 valve.net
 valvesoftware.com
 wmsjsteam.com
+pycon.org
+pypa.io
+pypi.io
+pypi.org
+python.org
+pythonhosted.org

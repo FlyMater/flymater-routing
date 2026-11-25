@@ -52,6 +52,7 @@
         "api.teleos.club",
         "assetsconfigcdn.org",
         "atsecret.com",
+        "bitcoinmagazinepro.com",
         "blackbit-exchange.com",
         "blackbit.exchange",
         "bongacams.com",
@@ -2146,6 +2147,20 @@
         "valve.net",
         "valvesoftware.com",
         "wmsjsteam.com"
+      ]
+    },
+    {
+      "name": "#Python",
+      "type": "custom",
+      "action": "route",
+      "outbound": "proxy",
+      "domain_suffix": [
+        "pycon.org",
+        "pypa.io",
+        "pypi.io",
+        "pypi.org",
+        "python.org",
+        "pythonhosted.org"
       ]
     },
     {
