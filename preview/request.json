@@ -1,5 +1,5 @@
 {
-  "id": "091e75b5-c677-4e28-867b-b048490c7068",
+  "id": "8f3fd4ff-8afe-44bc-9921-43116eceb951",
   "config": {
     "catalogs": [
       {
@@ -163,13 +163,13 @@
   },
   "manual": {
     "local": "# Локальные доменные исключения\nlan\nlocal\nlocalhost\n",
-    "proxy": "# Домены через VPN — начальный пример, дополните своими списками\n4vps.su\nably.net\napi.revenuecat.com\napi.segment.io\napi.teleos.club\nassetsconfigcdn.org\natsecret.com\nblackbit-exchange.com\nblackbit.exchange\nbongacams.com\nbraze.com\ncashflow.fund\ncloudflare-ech.com\nconverter.app\ncrypttex.com\nd2lwuy8qc234o3.cloudfront.net\ndbankcloud.ru\necurrency.org\nerub.money\nerub.site\nfeatureassets.org\nforum.ru-board.com\nhcaptcha.com\nkino.watch\nmarathonbet.com\nmetrics-prod.suno.com\nncnodes.com\nnnmclub.to\nnnmstatic.win\nnotube.net\nplaud.ai\nposthog.com\npotok.cash\nprodregistryv2.org\nrevenuecat.com\nroyallib.com\nrutracker.cc\nrutracker.org\nrutrk.org\nsberkassa.site\nstudio-api-prod.suno.com\nsuno.ai\nsuno.com\ntiktokglobalshopv.com\ntiktokv.eu\ntronscan.org\nvdsina.com\nwinance.exchange\naliyuncs.com\ntronscan.org\ntronscanapi.com\nbtcscan.org\nbscscan.com\njetbrains.com\nosvault.project-athens.com\nlookintobitcoin.com\nbitcoinmagazinepro.com\n\n#Telegramm\n109.239.140.0/24\n149.154.160.0/20\n2001:67c:4e8::/48\n2001:b28:f23d::/48\n2001:b28:f23f::/48\n91.108.12.0/22\n91.108.16.0/22\n91.108.4.0/22\n91.108.56.0/22\n91.108.8.0/22\nbstock.com\ncalmfox.net\nmerkandi.com\nmerstatic.com\nonesignal.com\nduo6duo8.com",
+    "proxy": "# Домены через VPN — начальный пример, дополните своими списками\n4vps.su\nably.net\napi.revenuecat.com\napi.segment.io\napi.teleos.club\nassetsconfigcdn.org\natsecret.com\nblackbit-exchange.com\nblackbit.exchange\nbongacams.com\nbraze.com\ncashflow.fund\ncloudflare-ech.com\nconverter.app\ncrypttex.com\nd2lwuy8qc234o3.cloudfront.net\ndbankcloud.ru\necurrency.org\nerub.money\nerub.site\nfeatureassets.org\nforum.ru-board.com\nhcaptcha.com\nkino.watch\nmarathonbet.com\nmetrics-prod.suno.com\nncnodes.com\nnnmclub.to\nnnmstatic.win\nnotube.net\nplaud.ai\nposthog.com\npotok.cash\nprodregistryv2.org\nrevenuecat.com\nroyallib.com\nrutracker.cc\nrutracker.org\nrutrk.org\nsberkassa.site\nstudio-api-prod.suno.com\nsuno.ai\nsuno.com\ntiktokglobalshopv.com\ntiktokv.eu\ntronscan.org\nvdsina.com\nwinance.exchange\naliyuncs.com\ntronscan.org\ntronscanapi.com\nbtcscan.org\nbscscan.com\njetbrains.com\nosvault.project-athens.com\nlookintobitcoin.com\nbitcoinmagazinepro.com\nparallels.com\n\n#Telegramm\n109.239.140.0/24\n149.154.160.0/20\n2001:67c:4e8::/48\n2001:b28:f23d::/48\n2001:b28:f23f::/48\n91.108.12.0/22\n91.108.16.0/22\n91.108.4.0/22\n91.108.56.0/22\n91.108.8.0/22\nbstock.com\ncalmfox.net\nmerkandi.com\nmerstatic.com\nonesignal.com\nduo6duo8.com",
     "direct": "# Прямое соединение\napple-cloudkit.com\napple-dns.net\napple-livephotoskit.com\napple.com\nbeget.com\ncdn-apple.com\nicloud-content.com\nicloud.com\nitunes.com\nmzstatic.com\n\n",
     "reject": "# Блокируемые домены (пока пусто)\n"
   },
   "base": {
-    "source/routing.json": "a32d3612469c5583360b876faaaf0d22cfa67a58",
-    "source/proxy.txt": "dad9d8f6ab903b7177f1cf1d94372e3b5064ef9f",
+    "source/routing.json": "ddee75dacfc4e152726b285a788d88b15aa6d4d9",
+    "source/proxy.txt": "3222c111fe3359f4b878a6a2e02245e7dc5c1422",
     "source/direct.txt": "8663c3e4097dfec63e74aa2faf56df71eff78619",
     "source/reject.txt": "222b8238d3daf071a0477bbde8196b3f298a3f83",
     "source/local.txt": "2c1cd124ff07e1b7c44df0f89159bd018d74853d"
