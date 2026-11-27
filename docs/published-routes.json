@@ -145,13 +145,6 @@
         "exclude": []
       },
       {
-        "tag": "geosite-steam",
-        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-steam.srs",
-        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
-        "policy": "proxy",
-        "exclude": []
-      },
-      {
         "tag": "geosite-python",
         "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-python.srs",
         "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
@@ -285,7 +278,6 @@
         "Whatsapp",
         "Google",
         "Alibaba",
-        "Steam",
         "Python"
       ],
       "direct": [
@@ -314,7 +306,6 @@
         "Whatsapp",
         "Google",
         "Alibaba",
-        "Steam",
         "Python"
       ]
     },
@@ -341,7 +332,6 @@
         "Whatsapp",
         "Google",
         "Alibaba",
-        "Steam",
         "Python"
       ],
       "direct": [
@@ -373,7 +363,6 @@
         "Whatsapp",
         "Google",
         "Alibaba",
-        "Steam",
         "Python"
       ],
       "direct": [
