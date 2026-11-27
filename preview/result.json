@@ -1,5 +1,5 @@
 {
-  "id": "8f3fd4ff-8afe-44bc-9921-43116eceb951",
+  "id": "e6c62a13-4f9e-47e2-b1e0-2ddef76f09d5",
   "issues": [],
   "coverage": [
     {
@@ -512,32 +512,6 @@
     },
     {
       "tag": "geosite-alibaba",
-      "client": "throne",
-      "status": "полностью",
-      "skipped": []
-    },
-    {
-      "tag": "geosite-steam",
-      "client": "singbox",
-      "status": "полностью",
-      "skipped": []
-    },
-    {
-      "tag": "geosite-steam",
-      "client": "ndms",
-      "status": "частично",
-      "skipped": [
-        "domain"
-      ]
-    },
-    {
-      "tag": "geosite-steam",
-      "client": "shadowrocket",
-      "status": "полностью",
-      "skipped": []
-    },
-    {
-      "tag": "geosite-steam",
       "client": "throne",
       "status": "полностью",
       "skipped": []
