@@ -1,5 +1,5 @@
 {
-  "id": "8f3fd4ff-8afe-44bc-9921-43116eceb951",
+  "id": "e6c62a13-4f9e-47e2-b1e0-2ddef76f09d5",
   "config": {
     "catalogs": [
       {
@@ -146,13 +146,6 @@
         "exclude": []
       },
       {
-        "tag": "geosite-steam",
-        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-steam.srs",
-        "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
-        "policy": "proxy",
-        "exclude": []
-      },
-      {
         "tag": "geosite-python",
         "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-python.srs",
         "catalog": "https://github.com/SagerNet/sing-geosite/tree/rule-set",
@@ -169,7 +162,7 @@
   },
   "base": {
     "source/routing.json": "ddee75dacfc4e152726b285a788d88b15aa6d4d9",
-    "source/proxy.txt": "3222c111fe3359f4b878a6a2e02245e7dc5c1422",
+    "source/proxy.txt": "49e29e07ede7d46ae638a0e08544dd1e047cfe1e",
     "source/direct.txt": "8663c3e4097dfec63e74aa2faf56df71eff78619",
     "source/reject.txt": "222b8238d3daf071a0477bbde8196b3f298a3f83",
     "source/local.txt": "2c1cd124ff07e1b7c44df0f89159bd018d74853d"
